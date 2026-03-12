@@ -1,10 +1,13 @@
 import pandas as pd
 import numpy as np
 import json
+import os
 from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException, status, APIRouter, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, text, cast, Date
 from datetime import datetime, date, timedelta
@@ -560,6 +563,14 @@ def update_user_profile(update_data: schemas.UserUpdate, db: Session = Depends(d
     db.commit()
     db.refresh(user)
     return user
+# 1. This tells FastAPI to serve everything in the 'frontend' folder
+if os.path.exists("frontend"):
+    app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
+
+# 2. This fixes the {"detail":"Not Found"} error at the main URL
+@app.get("/", include_in_schema=False)
+async def root():
+    return RedirectResponse(url="/frontend/login.html")
 
 
 app.include_router(router)

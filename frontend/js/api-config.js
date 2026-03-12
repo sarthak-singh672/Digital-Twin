@@ -1,8 +1,7 @@
 // Digital Twin - Backend API Configuration
 
 const API_CONFIG = {
-    BASE_URL: 'http://127.0.0.1:8000/api/v1', // <-- Pointed to your local FastAPI backend
-    ENDPOINTS: {
+    BASE_URL: 'https://digital-twin-production-5f4d.up.railway.app/api/v1',};    ENDPOINTS: {
         SIGNUP: '/auth/register', // <-- Updated to match FastAPI
         LOGIN: '/auth/token',     // <-- Updated to match FastAPI
         PROFILE: '/auth/profile',
