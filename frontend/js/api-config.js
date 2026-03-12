@@ -1,19 +1,15 @@
 // Digital Twin - Backend API Configuration
 
+// Digital Twin - Backend API Configuration
 const API_CONFIG = {
-    BASE_URL: 'https://digital-twin-production-5f4d.up.railway.app/api/v1',};    ENDPOINTS: {
-        SIGNUP: '/auth/register', // <-- Updated to match FastAPI
-        LOGIN: '/auth/token',     // <-- Updated to match FastAPI
-        PROFILE: '/auth/profile',
-        TOKEN_REFRESH: '/auth/token',
-        VITALS: '/data/vitals',       // <-- Updated to match FastAPI
-        LIFESTYLE: '/data/lifestyle', // <-- Updated to match FastAPI
-        ACADEMIC: '/data/academic',   // <-- Updated to match FastAPI
-        GOALS: '/goals/',
-        GOALS_ACTIVE: '/goals/active/',
-        ACHIEVEMENTS: '/achievements/',
-        EXPORTS: '/exports/',
-        ANALYTICS_SUMMARY: '/analytics/summary' // <-- Updated to match FastAPI
+    // For Production: Use 'https://digital-twin-production-5f4d.up.railway.app/api/v1'
+    // For Local: Use 'http://127.0.0.1:8000/api/v1'
+    BASE_URL: 'https://digital-twin-production-5f4d.up.railway.app/api/v1',
+    ENDPOINTS: {
+        SIGNUP: '/auth/register',
+        LOGIN: '/auth/token',
+        PROFILE: '/users/me', // Updated to match your @router.get("/users/me")
+        STATS: '/profile/stats'
     }
 };
 

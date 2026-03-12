@@ -112,7 +112,7 @@ class AuthHandler {
                    // ✅ NEW: Fetch theme from database after login
             try {
                 const token = localStorage.getItem('access_token');
-                const userRes = await fetch('http://127.0.0.1:8000/api/v1/users/me', {
+               const userRes = await fetch('https://digital-twin-production.up.railway.app/api/v1/users/me', {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 if (userRes.ok) {
