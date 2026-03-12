@@ -3,7 +3,7 @@
 (function(window) {
     'use strict';
 
-    const BASE_URL = 'https://digital-twin-production.up.railway.app/api/v1';
+    const BASE_URL ="https://digital-twin-production-5f4d.up.railway.app/api/v1";;
 
     function getToken() {
         return localStorage.getItem('access_token');
