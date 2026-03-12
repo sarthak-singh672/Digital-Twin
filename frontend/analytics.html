@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Digital Twin</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/components.css">
+    <link rel="stylesheet" href="./css/dashboard.css">
+    <link rel="stylesheet" href="./css/charts.css">
+    <link rel="stylesheet" href="./css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .analytics-page { padding: 2rem 0; }
+        .analytics-page .container { max-width: 1400px; margin: 0 auto; padding: 0 1.5rem; }
+        .analytics-title { text-align: center; margin-bottom: 2rem; }
+        .analytics-title h1 { font-size: 2rem; color: var(--text-primary); margin-bottom: 0.5rem; }
+        .analytics-title p { color: var(--text-secondary); font-size: 1.1rem; }
+
+        /* Grid Layouts */
+        .analytics-row { display: grid; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .row-2 { grid-template-columns: 1fr 1fr; }
+        .row-2-1 { grid-template-columns: 2fr 1fr; }
+        .row-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .row-1 { grid-template-columns: 1fr; }
+
+        /* Card Styles */
+        .a-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .a-card-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .a-card-header h3 {
+            font-size: 1.15rem;
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .a-card-body { padding: 1.5rem; }
+
+        /* Chart containers */
+        .chart-container { position: relative; width: 100%; min-height: 300px; }
+        .chart-container canvas { width: 100% !important; }
+
+        /* Dropdown */
+        .trend-select {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* Risk Assessment */
+        .risk-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.9rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .risk-row:last-child { border-bottom: none; }
+        .risk-label-text { font-weight: 500; color: var(--text-primary); min-width: 120px; }
+        .risk-bar-bg {
+            flex: 1;
+            height: 10px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin: 0 1rem;
+            overflow: hidden;
+        }
+        .risk-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.8s ease;
+        }
+        .risk-bar-fill.low { background: #10b981; }
+        .risk-bar-fill.medium { background: #f59e0b; }
+        .risk-bar-fill.high { background: #ef4444; }
+        .risk-dot {
+            width: 14px; height: 14px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+            flex-shrink: 0;
+        }
+        .risk-dot.low { background: #10b981; }
+        .risk-dot.medium { background: #f59e0b; }
+        .risk-dot.high { background: #ef4444; }
+        .risk-value-text {
+            font-weight: 600;
+            font-size: 0.9rem;
+            min-width: 110px;
+            text-align: right;
+            color: var(--text-primary);
+        }
+
+        /* AI Insights */
+        .insight-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+            border-left: 4px solid transparent;
+        }
+        .insight-item.success { border-left-color: #10b981; }
+        .insight-item.warning { border-left-color: #f59e0b; }
+        .insight-item.info { border-left-color: #3b82f6; }
+        .insight-item.danger { border-left-color: #ef4444; }
+        .insight-icon {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.9rem;
+            color: white;
+        }
+        .insight-icon.success { background: #10b981; }
+        .insight-icon.warning { background: #f59e0b; }
+        .insight-icon.info { background: #3b82f6; }
+        .insight-icon.danger { background: #ef4444; }
+        .insight-content h4 { margin: 0 0 0.25rem 0; font-size: 1rem; color: var(--text-primary); }
+        .insight-content p { margin: 0; font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5; }
+
+        /* Data Quality */
+        .quality-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .quality-label { font-weight: 500; color: var(--text-primary); min-width: 110px; }
+        .quality-bar-bg {
+            flex: 1;
+            height: 10px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin: 0 1rem;
+            overflow: hidden;
+        }
+        .quality-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #06b6d4, #3b82f6);
+            transition: width 0.8s ease;
+        }
+        .quality-value { font-weight: 600; color: var(--text-primary); min-width: 45px; text-align: right; }
+        .quality-stats { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color); }
+        .quality-stats p {
+            margin: 0.4rem 0;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+        }
+        .quality-stats strong { color: var(--text-primary); }
+
+        /* Export */
+        .export-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 0.9rem 1.25rem;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--card-bg);
+            color: var(--primary-color);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0.75rem;
+        }
+        .export-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        .export-checkboxes { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); }
+        .export-checkboxes label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0;
+            color: var(--text-primary);
+            font-size: 0.92rem;
+            cursor: pointer;
+        }
+        .export-checkboxes input[type="checkbox"] {
+            width: 18px; height: 18px;
+            accent-color: var(--primary-color);
+        }
+
+        /* Loading */
+        .loading-placeholder {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+        .loading-placeholder i { font-size: 2rem; margin-bottom: 1rem; display: block; }
+
+        /* Toast */
+        .toast-msg {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .toast-msg.success { background: #10b981; }
+        .toast-msg.info { background: #3b82f6; }
+        .toast-msg.error { background: #ef4444; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .row-2, .row-2-1, .row-3 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="theme-ocean">
+    <script src="./js/theme-loader.js"></script>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo"><i class="fas fa-heartbeat"></i> <span>Digital Twin</span></div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="manual-entry.html" class="nav-link">Data Entry</a>
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="profile.html" class="nav-link">Profile</a>
+                <a href="analytics.html" class="nav-link active">Analytics</a>
+                <a href="about.html" class="nav-link">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="analytics-page">
+        <div class="container">
+            <div class="analytics-title">
+                <h1><i class="fas fa-chart-line"></i> Advanced Analytics</h1>
+                <p>Deep insights into your health patterns and trends</p>
+            </div>
+
+            <!-- ROW 1: Sleep Trends (existing) + Health Correlations -->
+            <div class="analytics-row row-2">
+                <div class="a-card">
+                    <div class="a-card-header">
+                        <h3><i class="fas fa-bed"></i> Sleep Trends</h3>
+                    </div>
+                    <div class="a-card-body">
+                        <div class="chart-container"><canvas id="sleepTrendChart"></canvas></div>
+                    </div>
+                </div>
+                <div class="a-card">
+                    <div class="a-card-header">
+                        <h3><i class="fas fa-project-diagram"></i> Health Correlations</h3>
+                    </div>
+                    <div class="a-card-body">
+                        <div class="chart-container"><canvas id="correlationChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 2: Health Score Trends + Risk Assessment -->
+            <div class="analytics-row row-2-1">
+                <div class="a-card">
+                    <div class="a-card-header">
+                        <h3><i class="fas fa-heartbeat"></i> Health Score Trends</h3>
+                        <select class="trend-select" id="trendMetric">
+                            <option value="health">Health Score</option>
+                            <option value="wellness">Wellness Score</option>
+                            <option value="stress">Stress Index</option>
+                            <option value="engagement">Engagement Score</option>
+                        </select>
+                    </div>
+                    <div class="a-card-body">
+                        <div class="chart-container"><canvas id="healthTrendChart"></canvas></div>
+                    </div>
+                </div>
+                <div class="a-card">
+                    <div class="a-card-header">
+                        <h3><i class="fas fa-shield-alt"></i> Risk Assessment</h3>
+                    </div>
+                    <div class="a-card-body" id="riskAssessmentBody">
+                        <div class="loading-placeholder">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Calculating risks...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 3: AI Insights + Data Quality + Export -->
+            <div class="analytics-row row-3">
+                <div class="a-card">
+                    <div class="a-card-header">
+                        <h3><i class="fas fa-lightbulb"></i> AI Insights</h3>
+                    </div>
+                    <div class="a-card-body" id="aiInsightsBody">
+                        <div class="loading-placeholder">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Generating insights...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="a-card">
+                    <div class="a-card-header">
+                        <h3><i class="fas fa-database"></i> Data Quality</h3>
+                    </div>
+                    <div class="a-card-body" id="dataQualityBody">
+                        <div class="loading-placeholder">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Analyzing data...</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="a-card">
+                    <div class="a-card-header">
+                        <h3><i class="fas fa-file-export"></i> Export Data</h3>
+                    </div>
+                    <div class="a-card-body">
+                        <button class="export-btn" onclick="exportCSV()">
+                            <i class="fas fa-file-csv"></i> Export CSV
+                        </button>
+                        <button class="export-btn" onclick="exportJSON()">
+                            <i class="fas fa-file-code"></i> Export JSON
+                        </button>
+                        <button class="export-btn" onclick="exportPDFReport()">
+                            <i class="fas fa-file-pdf"></i> Export PDF Report
+                        </button>
+                        <div class="export-checkboxes">
+                            <label><input type="checkbox" id="incVitals" checked> Include Vitals</label>
+                            <label><input type="checkbox" id="incLifestyle" checked> Include Lifestyle</label>
+                            <label><input type="checkbox" id="incAcademic" checked> Include Academic</label>
+                            <label><input type="checkbox" id="incActivity" checked> Include Activity</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:8000/api/v1";
+        const token = localStorage.getItem('access_token');
+        const headers = { 'Authorization': 'Bearer ' + token };
+
+        // Store fetched data globally
+        let allData = {
+            summary: null,
+            vitals: [],
+            lifestyle: [],
+            academic: [],
+            activity: [],
+            chartData: []
+        };
+
+        // Chart instances
+        let sleepChart = null;
+        let correlationChartInstance = null;
+        let healthTrendChartInstance = null;
+
+        // =============================================
+        // MAIN LOADER
+        // =============================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!token) { window.location.href = './login.html'; return; }
+            await loadAllData();
+            renderSleepTrends();
+            renderCorrelationChart();
+            renderHealthTrends('health');
+            renderRiskAssessment();
+            renderAIInsights();
+            renderDataQuality();
+            setupTrendDropdown();
+        });
+
+        async function loadAllData() {
+            try {
+                const [summaryRes, vitalsRes, lifestyleRes, academicRes, activityRes] = await Promise.all([
+                    fetch(API_BASE + '/analytics/summary', { headers }),
+                    fetch(API_BASE + '/data/vitals', { headers }),
+                    fetch(API_BASE + '/data/lifestyle', { headers }),
+                    fetch(API_BASE + '/data/academic', { headers }),
+                    fetch(API_BASE + '/data/activity', { headers })
+                ]);
+
+                allData.summary = await summaryRes.json();
+                const v = await vitalsRes.json();
+                const l = await lifestyleRes.json();
+                const a = await academicRes.json();
+                const act = await activityRes.json();
+
+                allData.vitals = v.results || [];
+                allData.lifestyle = l.results || [];
+                allData.academic = a.results || [];
+                allData.activity = act.results || [];
+                allData.chartData = allData.summary.chart_data || [];
+
+            } catch (err) {
+                console.error('Failed to load data:', err);
+            }
+        }
+
+        // =============================================
+        // 1. SLEEP TRENDS CHART
+        // =============================================
+        function renderSleepTrends() {
+            const ctx = document.getElementById('sleepTrendChart').getContext('2d');
+            const records = [...allData.lifestyle].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (records.length === 0) {
+                ctx.canvas.parentElement.innerHTML = '<div class="loading-placeholder"><i class="fas fa-moon"></i><p>No sleep data yet. Add lifestyle entries!</p></div>';
+                return;
+            }
+
+            const labels = records.map(r => r.date);
+            const data = records.map(r => r.sleep_hrs);
+
+            if (sleepChart) sleepChart.destroy();
+            sleepChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Sleep Hours',
+                        data: data,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#10b981'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } },
+                    scales: {
+                        y: { beginAtZero: false, title: { display: true, text: 'Hours' } },
+                        x: { ticks: { maxRotation: 45, maxTicksToShow: 10 } }
+                    }
+                }
+            });
+        }
+
+        // =============================================
+        // 2. HEALTH CORRELATIONS (Scatter: Sleep vs Stress)
+        // =============================================
+        function renderCorrelationChart() {
+            const ctx = document.getElementById('correlationChart').getContext('2d');
+            const records = allData.lifestyle;
+
+            if (records.length === 0) {
+                ctx.canvas.parentElement.innerHTML = '<div class="loading-placeholder"><i class="fas fa-project-diagram"></i><p>No data yet. Add lifestyle entries!</p></div>';
+                return;
+            }
+
+            const scatterData = records
+                .filter(r => r.sleep_hrs != null && r.stress_score != null)
+                .map(r => ({ x: r.sleep_hrs, y: r.stress_score }));
+
+            if (correlationChartInstance) correlationChartInstance.destroy();
+            correlationChartInstance = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Sleep vs Stress',
+                        data: scatterData,
+                        backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                        borderColor: '#3b82f6',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } },
+                    scales: {
+                        x: { title: { display: true, text: 'Sleep Hours' }, beginAtZero: false },
+                        y: { title: { display: true, text: 'Stress Level' }, beginAtZero: true, max: 10 }
+                    }
+                }
+            });
+        }
+
+        // =============================================
+        // 3. HEALTH SCORE TRENDS (with Dropdown)
+        // =============================================
+        function renderHealthTrends(metric) {
+            const ctx = document.getElementById('healthTrendChart').getContext('2d');
+            const chart = allData.chartData;
+
+            if (!chart || chart.length === 0) {
+                ctx.canvas.parentElement.innerHTML = '<div class="loading-placeholder"><i class="fas fa-chart-line"></i><p>No trend data yet. Add some entries!</p></div>';
+                return;
+            }
+
+            const sorted = [...chart].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const riskScore = allData.summary ? allData.summary.risk_score || 0.2 : 0.2;
+
+            let dataPoints, label, color;
+
+            switch (metric) {
+                case 'wellness':
+                    dataPoints = sorted.map(r => r.WellnessScore != null ? parseFloat(r.WellnessScore).toFixed(1) : null);
+                    label = 'Wellness Score (0-10)';
+                    color = '#06b6d4';
+                    break;
+                case 'stress':
+                    dataPoints = sorted.map(r => r.StressIndex != null ? parseFloat(r.StressIndex).toFixed(1) : null);
+                    label = 'Stress Index (0-10)';
+                    color = '#f59e0b';
+                    break;
+                case 'engagement':
+                    dataPoints = sorted.map(r => r.EngagementScore != null ? parseFloat(r.EngagementScore).toFixed(1) : null);
+                    label = 'Engagement Score';
+                    color = '#8b5cf6';
+                    break;
+                default: // health
+                    dataPoints = sorted.map(r => {
+                        const w = r.WellnessScore != null ? parseFloat(r.WellnessScore) : 5;
+                        return Math.min(Math.max((w * 7) + ((1 - riskScore) * 30), 0), 100).toFixed(1);
+                    });
+                    label = 'Health Score (0-100)';
+                    color = '#10b981';
+                    break;
+            }
+
+            // Group by weeks
+            const weekLabels = [];
+            const weekData = [];
+            const chunkSize = Math.max(1, Math.ceil(sorted.length / 4));
+
+            for (let i = 0; i < sorted.length; i += chunkSize) {
+                const chunk = dataPoints.slice(i, i + chunkSize).filter(v => v != null).map(Number);
+                if (chunk.length > 0) {
+                    weekLabels.push('Week ' + (weekLabels.length + 1));
+                    weekData.push((chunk.reduce((a, b) => a + b, 0) / chunk.length).toFixed(1));
+                }
+            }
+
+            if (healthTrendChartInstance) healthTrendChartInstance.destroy();
+            healthTrendChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: weekLabels,
+                    datasets: [{
+                        label: label,
+                        data: weekData,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: metric === 'health' ? 100 : (metric === 'engagement' ? 100 : 10),
+                            title: { display: true, text: label }
+                        }
+                    }
+                }
+            });
+        }
+
+        function setupTrendDropdown() {
+            document.getElementById('trendMetric').addEventListener('change', function () {
+                renderHealthTrends(this.value);
+            });
+        }
+
+        // =============================================
+        // 4. RISK ASSESSMENT
+        // =============================================
+        function renderRiskAssessment() {
+            const container = document.getElementById('riskAssessmentBody');
+            const summary = allData.summary;
+            const chart = allData.chartData;
+
+            if (!summary) {
+                container.innerHTML = '<div class="loading-placeholder"><i class="fas fa-exclamation-circle"></i><p>No risk data available</p></div>';
+                return;
+            }
+
+            const overallRisk = Math.round((summary.risk_score || 0) * 100);
+
+            // Health Risk: based on vitals
+            let healthRisk = 15;
+            if (chart && chart.length > 0) {
+                const latest = chart[chart.length - 1];
+                const hr = latest.hr_mean_7d || latest.hr || 72;
+                const sleep = latest.sleep_hrs_mean_7d || latest.sleep_hrs || 7;
+                healthRisk = 0;
+                if (hr > 90) healthRisk += 25;
+                else if (hr > 80) healthRisk += 10;
+                if (sleep < 5) healthRisk += 30;
+                else if (sleep < 6) healthRisk += 15;
+                else if (sleep < 7) healthRisk += 5;
+                healthRisk = Math.min(healthRisk, 100);
+            }
+
+            // Stress Risk: from StressIndex
+            let stressRisk = 30;
+            if (chart && chart.length > 0) {
+                const latest = chart[chart.length - 1];
+                const si = latest.StressIndex || 5;
+                stressRisk = Math.round(si * 10); // 0-10 → 0-100%
+            }
+
+            // Academic Risk: inverse of EngagementScore
+            let academicRisk = 20;
+            if (chart && chart.length > 0) {
+                const latest = chart[chart.length - 1];
+                const eng = latest.EngagementScore || 50;
+                academicRisk = Math.round(Math.max(0, 100 - eng));
+            }
+
+            const risks = [
+                { label: 'Overall Risk', value: overallRisk },
+                { label: 'Health Risk', value: healthRisk },
+                { label: 'Stress Risk', value: stressRisk },
+                { label: 'Academic Risk', value: academicRisk }
+            ];
+
+            let html = '';
+            risks.forEach(r => {
+                const level = r.value <= 30 ? 'low' : r.value <= 60 ? 'medium' : 'high';
+                const levelText = r.value <= 30 ? 'Low' : r.value <= 60 ? 'Medium' : 'High';
+                html += `
+                    <div class="risk-row">
+                        <span class="risk-label-text">${r.label}</span>
+                        <span class="risk-dot ${level}"></span>
+                        <div class="risk-bar-bg">
+                            <div class="risk-bar-fill ${level}" style="width: ${r.value}%"></div>
+                        </div>
+                        <span class="risk-value-text">${levelText} (${r.value}%)</span>
+                    </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // =============================================
+        // 5. AI INSIGHTS
+        // =============================================
+        function renderAIInsights() {
+            const container = document.getElementById('aiInsightsBody');
+            const chart = allData.chartData;
+            const summary = allData.summary;
+            const lifestyle = allData.lifestyle;
+            const activity = allData.activity;
+
+            let insights = [];
+
+            // Insight 1: Sleep Pattern
+            if (lifestyle.length >= 7) {
+                const sorted = [...lifestyle].sort((a, b) => new Date(a.date) - new Date(b.date));
+                const firstWeek = sorted.slice(0, Math.min(7, Math.floor(sorted.length / 2)));
+                const lastWeek = sorted.slice(-Math.min(7, Math.floor(sorted.length / 2)));
+
+                const avgFirst = firstWeek.reduce((s, r) => s + (r.sleep_hrs || 0), 0) / firstWeek.length;
+                const avgLast = lastWeek.reduce((s, r) => s + (r.sleep_hrs || 0), 0) / lastWeek.length;
+
+                if (avgFirst > 0) {
+                    const change = Math.round(((avgLast - avgFirst) / avgFirst) * 100);
+                    if (change > 0) {
+                        insights.push({
+                            type: 'success', icon: 'fa-check',
+                            title: 'Sleep Pattern Improvement',
+                            message: `Your sleep quality has improved by ${change}% over the last month.`
+                        });
+                    } else if (change < -5) {
+                        insights.push({
+                            type: 'warning', icon: 'fa-exclamation-triangle',
+                            title: 'Sleep Pattern Decline',
+                            message: `Your sleep has decreased by ${Math.abs(change)}%. Try maintaining a consistent bedtime.`
+                        });
+                    } else {
+                        insights.push({
+                            type: 'success', icon: 'fa-check',
+                            title: 'Stable Sleep Pattern',
+                            message: 'Your sleep pattern has remained consistent. Keep it up!'
+                        });
+                    }
+                }
+            }
+
+            // Insight 2: Stress Level
+            if (chart && chart.length > 0) {
+                const latest = chart[chart.length - 1];
+                const stress = latest.StressIndex || 5;
+                if (stress > 6) {
+                    insights.push({
+                        type: 'warning', icon: 'fa-exclamation-triangle',
+                        title: 'Stress Level Concern',
+                        message: 'Stress levels have increased during exam periods. Consider stress management techniques.'
+                    });
+                } else if (stress > 4) {
+                    insights.push({
+                        type: 'info', icon: 'fa-info',
+                        title: 'Moderate Stress Level',
+                        message: 'Your stress is moderate. Regular breaks and exercise can help maintain balance.'
+                    });
+                } else {
+                    insights.push({
+                        type: 'success', icon: 'fa-check',
+                        title: 'Low Stress Level',
+                        message: 'Great job! Your stress levels are well managed. Keep up the healthy habits!'
+                    });
+                }
+            }
+
+            // Insight 3: Exercise Correlation
+            if (activity.length >= 3 && lifestyle.length >= 3) {
+                const avgSteps = activity.reduce((s, r) => s + (r.steps || 0), 0) / activity.length;
+                if (avgSteps > 5000) {
+                    insights.push({
+                        type: 'info', icon: 'fa-info',
+                        title: 'Exercise Correlation',
+                        message: 'Higher physical activity correlates with better mood ratings and academic focus.'
+                    });
+                } else {
+                    insights.push({
+                        type: 'warning', icon: 'fa-exclamation-triangle',
+                        title: 'Low Activity Level',
+                        message: `Your average steps (${Math.round(avgSteps)}) are below recommended. Try walking more daily.`
+                    });
+                }
+            }
+
+            // Insight 4: From DB recommendations
+            if (summary && summary.recommendations && summary.recommendations.length > 0) {
+                const rec = summary.recommendations[0];
+                insights.push({
+                    type: 'danger', icon: 'fa-robot',
+                    title: rec.title || 'AI Recommendation',
+                    message: rec.explanation || 'Based on your recent data patterns.'
+                });
+            }
+
+            // Fallback if no insights
+            if (insights.length === 0) {
+                insights.push({
+                    type: 'info', icon: 'fa-info',
+                    title: 'Getting Started',
+                    message: 'Add more data entries to get personalized AI insights about your health patterns.'
+                });
+            }
+
+            let html = '';
+            insights.forEach(ins => {
+                html += `
+                    <div class="insight-item ${ins.type}">
+                        <div class="insight-icon ${ins.type}">
+                            <i class="fas ${ins.icon}"></i>
+                        </div>
+                        <div class="insight-content">
+                            <h4>${ins.title}</h4>
+                            <p>${ins.message}</p>
+                        </div>
+                    </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // =============================================
+        // 6. DATA QUALITY
+        // =============================================
+        function renderDataQuality() {
+            const container = document.getElementById('dataQualityBody');
+
+            // Completeness: how many of the 4 categories have data
+            let categoriesWithData = 0;
+            if (allData.vitals.length > 0) categoriesWithData++;
+            if (allData.lifestyle.length > 0) categoriesWithData++;
+            if (allData.academic.length > 0) categoriesWithData++;
+            if (allData.activity.length > 0) categoriesWithData++;
+            const completeness = Math.round((categoriesWithData / 4) * 100);
+
+            // Consistency: % of days with at least one entry
+            const allDates = new Set();
+            allData.vitals.forEach(r => { if (r.ts) allDates.add(r.ts.substring(0, 10)); });
+            allData.lifestyle.forEach(r => { if (r.date) allDates.add(r.date); });
+            allData.academic.forEach(r => { if (r.date) allDates.add(r.date); });
+            allData.activity.forEach(r => { if (r.date) allDates.add(r.date); });
+
+            let consistency = 0;
+            if (allDates.size > 0) {
+                const sortedDates = [...allDates].sort();
+                const firstDate = new Date(sortedDates[0]);
+                const lastDate = new Date(sortedDates[sortedDates.length - 1]);
+                const totalDays = Math.max(1, Math.ceil((lastDate - firstDate) / (1000 * 60 * 60 * 24)) + 1);
+                consistency = Math.min(100, Math.round((allDates.size / totalDays) * 100));
+            }
+
+            // Recency: how recent is the latest entry
+            let recency = 0;
+            if (allDates.size > 0) {
+                const sortedDates = [...allDates].sort();
+                const lastEntry = new Date(sortedDates[sortedDates.length - 1]);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const daysSince = Math.ceil((today - lastEntry) / (1000 * 60 * 60 * 24));
+                recency = Math.max(0, 100 - (daysSince * 10));
+            }
+
+            const totalRecords = allData.vitals.length + allData.lifestyle.length +
+                allData.academic.length + allData.activity.length;
+
+            // Last entry date
+            let lastEntryText = 'N/A';
+            if (allDates.size > 0) {
+                const sortedDates = [...allDates].sort();
+                const last = sortedDates[sortedDates.length - 1];
+                const lastDate = new Date(last);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const diff = Math.ceil((today - lastDate) / (1000 * 60 * 60 * 24));
+                if (diff === 0) lastEntryText = 'Today';
+                else if (diff === 1) lastEntryText = 'Yesterday';
+                else lastEntryText = diff + ' days ago';
+            }
+
+            // Day streak
+            let streak = 0;
+            if (allDates.size > 0) {
+                const sortedDates = [...allDates].sort().reverse();
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                let checkDate = new Date(sortedDates[0]);
+                checkDate.setHours(0, 0, 0, 0);
+                if (checkDate > today) checkDate = today;
+
+                for (const ds of sortedDates) {
+                    const d = new Date(ds);
+                    d.setHours(0, 0, 0, 0);
+                    if (d.getTime() === checkDate.getTime()) {
+                        streak++;
+                        checkDate.setDate(checkDate.getDate() - 1);
+                    } else if (d < checkDate) {
+                        break;
+                    }
+                }
+            }
+
+            container.innerHTML = `
+                <div class="quality-row">
+                    <span class="quality-label">Completeness</span>
+                    <div class="quality-bar-bg">
+                        <div class="quality-bar-fill" style="width: ${completeness}%"></div>
+                    </div>
+                    <span class="quality-value">${completeness}%</span>
+                </div>
+                <div class="quality-row">
+                    <span class="quality-label">Consistency</span>
+                    <div class="quality-bar-bg">
+                        <div class="quality-bar-fill" style="width: ${consistency}%"></div>
+                    </div>
+                    <span class="quality-value">${consistency}%</span>
+                </div>
+                <div class="quality-row">
+                    <span class="quality-label">Recency</span>
+                    <div class="quality-bar-bg">
+                        <div class="quality-bar-fill" style="width: ${recency}%"></div>
+                    </div>
+                    <span class="quality-value">${recency}%</span>
+                </div>
+                <div class="quality-stats">
+                    <p><strong>Total Records:</strong> ${totalRecords}</p>
+                    <p><strong>Last Entry:</strong> ${lastEntryText}</p>
+                    <p><strong>Data Streak:</strong> ${streak} days</p>
+                </div>`;
+        }
+
+        // =============================================
+        // 7. EXPORT FUNCTIONS
+        // =============================================
+        function getSelectedData() {
+            let data = {};
+            if (document.getElementById('incVitals').checked) data.vitals = allData.vitals;
+            if (document.getElementById('incLifestyle').checked) data.lifestyle = allData.lifestyle;
+            if (document.getElementById('incAcademic').checked) data.academic = allData.academic;
+            if (document.getElementById('incActivity').checked) data.activity = allData.activity;
+            return data;
+        }
+
+        function exportCSV() {
+            const data = getSelectedData();
+            let csvContent = '';
+
+            Object.keys(data).forEach(category => {
+                if (data[category].length === 0) return;
+                csvContent += '\n--- ' + category.toUpperCase() + ' ---\n';
+                const headers = Object.keys(data[category][0]);
+                csvContent += headers.join(',') + '\n';
+                data[category].forEach(row => {
+                    csvContent += headers.map(h => {
+                        let val = row[h] || '';
+                        if (typeof val === 'string' && val.includes(',')) val = '"' + val + '"';
+                        return val;
+                    }).join(',') + '\n';
+                });
+            });
+
+            if (!csvContent.trim()) { showToast('No data selected for export', 'error'); return; }
+            downloadFile(csvContent, 'digital_twin_data.csv', 'text/csv');
+            showToast('CSV exported successfully!', 'success');
+        }
+
+        function exportJSON() {
+            const data = getSelectedData();
+            if (Object.keys(data).length === 0) { showToast('No data selected for export', 'error'); return; }
+            const jsonContent = JSON.stringify(data, null, 2);
+            downloadFile(jsonContent, 'digital_twin_data.json', 'application/json');
+            showToast('JSON exported successfully!', 'success');
+        }
+
+        function exportPDFReport() {
+            // Generate a simple HTML report and open in new window for printing to PDF
+            const data = getSelectedData();
+            const summary = allData.summary;
+
+            let html = `<!DOCTYPE html><html><head><title>Digital Twin Health Report</title>
+                <style>body{font-family:Arial,sans-serif;max-width:800px;margin:0 auto;padding:2rem;}
+                h1{color:#1e40af;} h2{color:#334155;margin-top:2rem;border-bottom:2px solid #e2e8f0;padding-bottom:0.5rem;}
+                table{width:100%;border-collapse:collapse;margin:1rem 0;} th,td{border:1px solid #e2e8f0;padding:0.5rem;text-align:left;}
+                th{background:#f1f5f9;} .score{font-size:2rem;color:#10b981;font-weight:bold;}
+                .meta{color:#64748b;font-size:0.9rem;} @media print{body{padding:0;}}</style></head><body>`;
+
+            html += '<h1>🏥 Digital Twin Health Report</h1>';
+            html += '<p class="meta">Generated on: ' + new Date().toLocaleDateString() + '</p>';
+
+            if (summary) {
+                html += '<h2>Health Summary</h2>';
+                html += '<p>Health Score: <span class="score">' + (summary.health_score || 'N/A') + '</span> / 100</p>';
+                html += '<p>Risk Level: ' + (summary.risk_label || 'N/A') + ' (' + Math.round((summary.risk_score || 0) * 100) + '%)</p>';
+            }
+
+            Object.keys(data).forEach(cat => {
+                if (data[cat].length === 0) return;
+                html += '<h2>' + cat.charAt(0).toUpperCase() + cat.slice(1) + ' (' + data[cat].length + ' records)</h2>';
+                html += '<table><tr>';
+                const cols = Object.keys(data[cat][0]).filter(k => k !== 'user_id');
+                cols.forEach(c => { html += '<th>' + c + '</th>'; });
+                html += '</tr>';
+                data[cat].slice(-10).forEach(row => {
+                    html += '<tr>';
+                    cols.forEach(c => { html += '<td>' + (row[c] || '') + '</td>'; });
+                    html += '</tr>';
+                });
+                html += '</table>';
+                if (data[cat].length > 10) html += '<p class="meta">Showing latest 10 of ' + data[cat].length + ' records</p>';
+            });
+
+            html += '</body></html>';
+
+            const win = window.open('', '_blank');
+            win.document.write(html);
+            win.document.close();
+            showToast('PDF Report opened! Use Cmd+P to print/save as PDF', 'info');
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type: type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function showToast(message, type) {
+            const existing = document.querySelector('.toast-msg');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast-msg ' + type;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,443 @@
+/* Digital Twin - Charts Styles */
+
+/* Chart Container Enhancements */
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+.chart-container canvas {
+  max-height: 100% !important;
+}
+
+/* Chart Loading State */
+.chart-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.chart-loading .spinner {
+  width: 40px;
+  height: 40px;
+}
+
+.chart-loading-text {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* Chart Controls */
+.chart-controls {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.chart-toggle {
+  display: flex;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs);
+}
+
+.chart-toggle button {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-size: 0.875rem;
+}
+
+.chart-toggle button.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+.chart-toggle button:hover:not(.active) {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+/* Chart Legend Customization */
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-lg);
+  margin-top: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 0.875rem;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-sm);
+}
+
+/* Health Score Chart Styles */
+.health-score-chart {
+  position: relative;
+}
+
+.score-gradient {
+  background: conic-gradient(
+    from 0deg,
+    #ef4444 0deg 72deg,
+    #f59e0b 72deg 144deg,
+    #10b981 144deg 216deg,
+    #059669 216deg 288deg,
+    #047857 288deg 360deg
+  );
+}
+
+/* Risk Assessment Chart */
+.risk-chart-container {
+  padding: 0;
+}
+
+.risk-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.risk-label {
+  min-width: 120px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.risk-bar {
+  flex: 1;
+  height: 20px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.risk-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width var(--transition-slow);
+  position: relative;
+}
+
+.risk-fill.low {
+  background: linear-gradient(90deg, var(--accent-color), #34d399);
+}
+
+.risk-fill.medium {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.risk-fill.high {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.risk-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+.risk-value {
+  min-width: 80px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+/* Correlation Chart Enhancements */
+.correlation-matrix {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.correlation-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  position: relative;
+}
+
+.correlation-cell.strong-positive {
+  background: #059669;
+}
+
+.correlation-cell.moderate-positive {
+  background: #10b981;
+}
+
+.correlation-cell.weak-positive {
+  background: #6ee7b7;
+  color: var(--text-primary);
+}
+
+.correlation-cell.neutral {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+}
+
+.correlation-cell.weak-negative {
+  background: #fca5a5;
+  color: var(--text-primary);
+}
+
+.correlation-cell.moderate-negative {
+  background: #f87171;
+}
+
+.correlation-cell.strong-negative {
+  background: #dc2626;
+}
+
+/* Insights Cards */
+.insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.insight-item {
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border-left: 4px solid transparent;
+}
+
+.insight-item.positive {
+  background: rgba(16, 185, 129, 0.05);
+  border-left-color: var(--accent-color);
+}
+
+.insight-item.warning {
+  background: rgba(245, 158, 11, 0.05);
+  border-left-color: #f59e0b;
+}
+
+.insight-item.info {
+  background: rgba(59, 130, 246, 0.05);
+  border-left-color: var(--primary-color);
+}
+
+.insight-item i {
+  margin-top: var(--spacing-xs);
+  font-size: 1.25rem;
+}
+
+.insight-item.positive i {
+  color: var(--accent-color);
+}
+
+.insight-item.warning i {
+  color: #f59e0b;
+}
+
+.insight-item.info i {
+  color: var(--primary-color);
+}
+
+.insight-content h4 {
+  margin: 0 0 var(--spacing-xs) 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.insight-content p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Data Quality Indicators */
+.quality-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.quality-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.quality-label {
+  min-width: 100px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.quality-bar {
+  flex: 1;
+  height: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.quality-fill {
+  height: 100%;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
+  transition: width var(--transition-slow);
+}
+
+.quality-value {
+  min-width: 50px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 0.875rem;
+}
+
+.data-summary {
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border-color);
+}
+
+.data-summary p {
+  margin: var(--spacing-xs) 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.data-summary strong {
+  color: var(--text-primary);
+}
+
+/* Export Options */
+.export-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.export-options .btn {
+  justify-content: flex-start;
+}
+
+.export-settings {
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--border-color);
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.form-check input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-color);
+}
+
+.form-check label {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+/* Responsive Chart Adjustments */
+@media (max-width: 768px) {
+  .chart-container {
+    height: 250px;
+  }
+
+  .chart-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-md);
+  }
+
+  .chart-legend {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+
+  .correlation-matrix {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .export-options {
+    gap: var(--spacing-xs);
+  }
+
+  .export-options .btn {
+    padding: var(--spacing-sm);
+    font-size: 0.875rem;
+  }
+}
+
+/* Animation for chart data updates */
+@keyframes chartDataUpdate {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.chart-container.updating {
+  animation: chartDataUpdate 0.3s ease-out;
+}
+
+/* Custom Chart.js tooltip styles */
+.chartjs-tooltip {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+  color: var(--text-primary) !important;
+  font-family: inherit !important;
+}
+
+.chartjs-tooltip-key {
+  background: var(--primary-color) !important;
+  border-radius: var(--radius-sm) !important;
+}

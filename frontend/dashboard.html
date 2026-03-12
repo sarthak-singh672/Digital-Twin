@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Digital Twin</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/components.css">
+    <link rel="stylesheet" href="./css/dashboard.css">
+    <link rel="stylesheet" href="./css/charts.css">
+    <link rel="stylesheet" href="./css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="theme-ocean">
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-heartbeat"></i>
+                <span>Digital Twin</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="manual-entry.html" class="nav-link">Data Entry</a>
+                <a href="dashboard.html" class="nav-link active">Dashboard</a>
+                <a href="profile.html" class="nav-link">Profile</a>
+                <a href="analytics.html" class="nav-link">Analytics</a>
+                <a href="about.html" class="nav-link">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1>Health Dashboard</h1>
+            <p>Your personalized health insights and predictions</p>
+        </div>
+
+        <!-- Health Score Section -->
+        <div class="health-score-section">
+            <div class="health-score-card">
+                <div class="score-circle">
+                    <canvas id="healthScoreChart" width="200" height="200"></canvas>
+                    <div class="score-text">
+                        <span class="score-number" id="healthScore">--</span>
+                        <span class="score-label">Health Score</span>
+                    </div>
+                </div>
+                <div class="score-details">
+                    <div class="risk-level low">
+                        <i class="fas fa-check-circle"></i>
+                        <span id="riskLabel">Loading...</span>
+                    </div>
+                    <div class="last-updated">
+                        Last updated: <span id="lastUpdated">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-icon vitals">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="avgHeartRate">--</h3>
+                    <p>Avg Heart Rate</p>
+                    <span class="stat-trend" id="avgHeartRateTrend"></span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon sleep">
+                    <i class="fas fa-moon"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="avgSleep">--</h3>
+                    <p>Avg Sleep Hours</p>
+                    <span class="stat-trend" id="avgSleepTrend"></span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon stress">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="avgStress">--</h3>
+                    <p>Avg Stress Level</p>
+                    <span class="stat-trend" id="avgStressTrend"></span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon academic">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="avgStudyHours">--</h3>
+                    <p>Avg Study Hours</p>
+                    <span class="stat-trend" id="avgStudyHoursTrend"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-heartbeat"></i> Vital Signs Trends</h3>
+                    <div class="chart-controls">
+                        <select id="vitalsTimeRange">
+                            <option value="7">Last 7 days</option>
+                            <option value="30" selected>Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="vitalsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-moon"></i> Lifestyle Patterns</h3>
+                    <div class="chart-controls">
+                        <select id="lifestyleTimeRange">
+                            <option value="7">Last 7 days</option>
+                            <option value="30" selected>Last 30 days</option>
+                            <option value="90">Last 90 days</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="lifestyleChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations Section -->
+        <div class="recommendations-section" style="margin-top: 30px;">
+               <h3 style="margin-bottom: 15px;">
+                   <i class="fas fa-lightbulb">
+
+                   </i> AI Daily Insights
+               </h3>
+
+         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="recommendationsGrid">
+                <p style="grid-column: 1 / -1; text-align: center; color: gray;">
+                 Crunching your health data...
+                </p>
+         </div>
+        </div>
+        <!-- Goals Section -->
+        <div class="goals-section">
+            <div class="section-header">
+                <h3><i class="fas fa-target"></i> Health Goals</h3>
+                <a href="profile.html" class="btn btn-outline">Manage Goals</a>
+            </div>
+            <div class="goals-grid" id="goalsGrid">
+                <!-- Goals will be loaded by JavaScript -->
+                 <p>Loading goals...</p>
+            </div>
+        </div>
+    </div>
+
+    <!--
+      FIXED HERE:
+      1. Added 'js/api.js' so the page can talk to the backend.
+      2. Made sure 'api.js' is loaded *before* 'dashboard.js'.
+      3. Removed the broken 'js/charts.js' file.
+    -->
+    <script src="./js/theme-loader.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/main.js"></script>
+    <script src="./js/dashboard.js"></script>
+    <script src="./js/data-manager.js"></script>
+</body>
+</html>

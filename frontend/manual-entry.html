@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Data Entry - Digital Twin</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/components.css">
+    <link rel="stylesheet" href="./css/forms.css">
+    <link rel="stylesheet" href="./css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="theme-ocean">
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-heartbeat"></i>
+                <span>Digital Twin</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="manual-entry.html" class="nav-link active">Data Entry</a>
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="profile.html" class="nav-link">Profile</a>
+                <a href="analytics.html" class="nav-link">Analytics</a>
+                <a href="about.html" class="nav-link">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-container">
+        <div class="form-container">
+            <div class="form-header">
+                <h1>Health Data Entry</h1>
+                <p>Track your vitals, lifestyle, and academic performance</p>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-steps">
+                    <div class="step active" data-step="1">
+                        <i class="fas fa-heartbeat"></i>
+                        <span>Vitals</span>
+                    </div>
+                    <div class="step" data-step="2">
+                        <i class="fas fa-moon"></i>
+                        <span>Lifestyle</span>
+                    </div>
+                    <div class="step" data-step="3">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Academic</span>
+                    </div>
+                </div>
+            </div>
+
+            <form id="healthForm" class="multi-step-form">
+                <div class="form-step active" data-step="1">
+                    <h2><i class="fas fa-heartbeat"></i> Vital Signs</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="heartRate">Heart Rate (bpm)</label>
+                            <input type="number" id="heartRate" min="40" max="200" required>
+                            <span class="form-hint">Normal: 60-100 bpm</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="bpSystolic">Blood Pressure Systolic</label>
+                            <input type="number" id="bpSystolic" min="70" max="200" required>
+                            <span class="form-hint">Normal: 90-120 mmHg</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="bpDiastolic">Blood Pressure Diastolic</label>
+                            <input type="number" id="bpDiastolic" min="40" max="120" required>
+                            <span class="form-hint">Normal: 60-80 mmHg</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="temperature">Temperature (°F)</label>
+                            <input type="number" id="temperature" min="95" max="105" step="0.1" required>
+                            <span class="form-hint">Normal: 98.6°F</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="spo2">Blood Oxygen (SpO2 %)</label>
+                            <input type="number" id="spo2" min="70" max="100" required>
+                            <span class="form-hint">Normal: 95-100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-step" data-step="2">
+                    <h2><i class="fas fa-moon"></i> Lifestyle Factors</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="sleepHours">Sleep Hours</label>
+                            <input type="number" id="sleepHours" min="0" max="24" step="0.5" required>
+                            <span class="form-hint">Recommended: 7-9 hours</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="stressLevel">Stress Level (1-10)</label>
+                            <input type="range" id="stressLevel" min="1" max="10" value="5">
+                            <div class="range-labels">
+                                <span>Low</span>
+                                <span id="stressValue">5</span>
+                                <span>High</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="dietQuality">Diet Quality (1-10)</label>
+                            <input type="range" id="dietQuality" min="1" max="10" value="5">
+                            <div class="range-labels">
+                                <span>Poor</span>
+                                <span id="dietValue">5</span>
+                                <span>Excellent</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="waterIntake">Water Intake (glasses)</label>
+                            <input type="number" id="waterIntake" min="0" max="20" required>
+                            <span class="form-hint">Recommended: 8 glasses</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="physicalActivity">Physical Activity (hours)</label>
+                            <input type="number" id="physicalActivity" min="0" max="10" step="0.5" required>
+                            <span class="form-hint">Recommended: 1-2 hours</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-step" data-step="3">
+                    <h2><i class="fas fa-graduation-cap"></i> Academic Performance</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="studyHours">Study Hours (per day)</label>
+                            <input type="number" id="studyHours" min="0" max="16" step="0.5" required>
+                            <span class="form-hint">Average daily study time</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="attendance">Attendance (%)</label>
+                            <input type="number" id="attendance" min="0" max="100" required>
+                            <span class="form-hint">Class attendance percentage</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="assignmentsCompleted">Assignments Completed (%)</label>
+                            <input type="number" id="assignmentsCompleted" min="0" max="100" required>
+                            <span class="form-hint">On-time completion rate</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="focusLevel">Focus Level (1-10)</label>
+                            <input type="range" id="focusLevel" min="1" max="10" value="5">
+                            <div class="range-labels">
+                                <span>Poor</span>
+                                <span id="focusValue">5</span>
+                                <span>Excellent</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-navigation">
+                    <button type="button" id="prevBtn" class="btn btn-secondary" style="display: none;">
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </button>
+                    <button type="button" id="nextBtn" class="btn btn-primary">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </button>
+                    <button type="submit" id="submitBtn" class="btn btn-success" style="display: none;">
+                        <i class="fas fa-check"></i> Complete Entry
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="./js/theme-loader.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/main.js"></script>
+    <script src="./js/forms.js"></script>
+    <script src="./js/data-manager.js"></script>
+</body>
+</html>

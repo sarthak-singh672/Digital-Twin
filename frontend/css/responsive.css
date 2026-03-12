@@ -1,0 +1,500 @@
+/* Digital Twin - Responsive Design */
+
+/* Mobile First Approach */
+@media (max-width: 640px) {
+  /* Typography adjustments */
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.75rem; }
+  h3 { font-size: 1.25rem; }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.125rem;
+  }
+
+  /* Container adjustments */
+  .container {
+    padding: 0 var(--spacing-sm);
+  }
+
+  .page-container {
+    padding-top: 70px;
+  }
+
+  /* Navigation mobile styles */
+  .nav-container {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .nav-menu {
+    display: none; /* Hide desktop menu */
+  }
+
+  .nav-mobile {
+    display: block;
+  }
+
+  /* Button adjustments */
+  .hero-buttons {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Grid adjustments */
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+  }
+
+  /* Card adjustments */
+  .feature-card {
+    padding: var(--spacing-lg);
+  }
+
+  .feature-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.5rem;
+  }
+
+  /* Form adjustments */
+  .form-container {
+    padding: var(--spacing-md);
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-navigation {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .form-navigation .btn {
+    width: 100%;
+  }
+
+  /* Progress steps mobile */
+  .progress-steps {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .step {
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
+    width: 100%;
+  }
+
+  .step i {
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+  }
+
+  /* Dashboard mobile */
+  .health-score-card {
+    flex-direction: column;
+    padding: var(--spacing-lg);
+  }
+
+  .score-circle {
+    width: 150px;
+    height: 150px;
+  }
+
+  .score-number {
+    font-size: 2.5rem;
+  }
+
+  .quick-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: var(--spacing-md);
+  }
+
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+
+  .stat-content h3 {
+    font-size: 1.5rem;
+  }
+
+  /* Chart adjustments */
+  .charts-section {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-container {
+    height: 250px;
+  }
+
+  .chart-header {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    align-items: flex-start;
+  }
+
+  /* Recommendations mobile */
+  .recommendations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .recommendation-card {
+    padding: var(--spacing-md);
+  }
+
+  /* Goals mobile */
+  .goals-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-header {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    align-items: flex-start;
+  }
+
+  /* Analytics mobile */
+  .analytics-controls {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analytics-card.large {
+    grid-column: span 1;
+  }
+
+  /* Profile mobile */
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-avatar {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .avatar-circle {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+
+  /* Modal mobile */
+  .modal-content {
+    width: 95%;
+    margin: var(--spacing-md);
+  }
+
+  .modal-header {
+    padding: var(--spacing-md);
+  }
+
+  .modal-body {
+    padding: var(--spacing-md);
+  }
+
+  .modal-footer {
+    padding: var(--spacing-md);
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+  }
+
+  /* Footer mobile */
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+    text-align: center;
+  }
+}
+
+/* Tablet Styles */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .container {
+    padding: 0 var(--spacing-lg);
+  }
+
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts-section {
+    grid-template-columns: 1fr;
+  }
+
+  .recommendations-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .goals-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .analytics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .analytics-card.large {
+    grid-column: span 2;
+  }
+
+  .profile-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Navigation tablet */
+  .nav-menu {
+    gap: var(--spacing-md);
+  }
+
+  /* Form tablet */
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .progress-steps {
+    justify-content: space-around;
+  }
+}
+
+/* Large Desktop */
+@media (min-width: 1441px) {
+  .container {
+    max-width: 1400px;
+  }
+
+  .dashboard-container {
+    max-width: 1600px;
+  }
+
+  .features-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .quick-stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .recommendations-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .analytics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .analytics-card.large {
+    grid-column: span 2;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase touch targets */
+  .btn {
+    min-height: 44px;
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .nav-link {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .form-control {
+    min-height: 44px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  .btn-icon {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Remove hover effects on touch devices */
+  .feature-card:hover,
+  .stat-card:hover,
+  .chart-card:hover,
+  .goal-card:hover,
+  .recommendation-card:hover {
+    transform: none;
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn:hover {
+    transform: none;
+  }
+
+  /* Adjust form controls for touch */
+  .form-range::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+  }
+
+  .switch {
+    width: 60px;
+    height: 30px;
+  }
+
+  .switch-slider:before {
+    width: 24px;
+    height: 24px;
+    left: 3px;
+    bottom: 3px;
+  }
+
+  .switch input:checked + .switch-slider:before {
+    transform: translateX(30px);
+  }
+}
+
+/* High DPI Display Optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Ensure crisp graphics on retina displays */
+  .feature-icon,
+  .stat-icon,
+  .avatar-circle {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Adjust border widths for high DPI */
+  .card,
+  .form-control,
+  .btn-outline {
+    border-width: 0.5px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  /* Hide interactive elements */
+  .navbar,
+  .btn,
+  .form-navigation,
+  .chart-controls,
+  .modal,
+  .toast {
+    display: none !important;
+  }
+
+  /* Optimize for print */
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+    color: #000;
+    background: #fff;
+  }
+
+  .page-container {
+    padding-top: 0;
+  }
+
+  .card,
+  .feature-card,
+  .stat-card {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    page-break-inside: avoid;
+  }
+
+  /* Ensure readability */
+  h1, h2, h3, h4, h5, h6 {
+    color: #000;
+    page-break-after: avoid;
+  }
+
+  .chart-container {
+    height: 300px;
+    background: #fff;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .hero-background::after {
+    animation: none;
+  }
+
+  .progress-fill::after,
+  .risk-fill::after {
+    animation: none;
+  }
+
+  .spinner {
+    animation: none;
+    border-top-color: transparent;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  :root {
+    --border-color: #000;
+    --text-primary: #000;
+    --text-secondary: #333;
+    --bg-color: #fff;
+    --card-bg: #fff;
+  }
+
+  .btn-primary {
+    background: #000;
+    color: #fff;
+    border: 2px solid #000;
+  }
+
+  .btn-outline {
+    border: 2px solid #000;
+    color: #000;
+  }
+
+  .card,
+  .feature-card,
+  .stat-card {
+    border: 2px solid #000;
+  }
+}

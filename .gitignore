@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+build/
+dist/
+
+# Secrets & Config
+.env
+config.py  # ONLY hide this if it contains your real password!
+.idea/     # PyCharm specific settings
+
+# OS
+.DS_Store
+Thumbs.db

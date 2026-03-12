@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Digital Twin</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/components.css">
+    <link rel="stylesheet" href="./css/dashboard.css">
+    <link rel="stylesheet" href="./css/responsive.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+    <style>
+        .profile-three-col {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-xl); margin-bottom: var(--spacing-xl);
+        }
+        .profile-stats-row {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--spacing-md); text-align: center;
+        }
+        .profile-stat-box h4 { font-size: 1.8rem; font-weight: 800; color: var(--primary-color); margin-bottom: 2px; }
+        .profile-stat-box p { font-size: 0.85rem; color: var(--text-secondary); margin: 0; }
+        .achievements-list { margin-top: var(--spacing-lg); }
+        .achievement-item { display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-sm) 0; }
+        .achievement-item i { font-size: 1.2rem; color: var(--primary-color); width: 24px; text-align: center; }
+        .achievement-item span { font-weight: 500; color: var(--text-primary); }
+        .no-achievements { color: var(--text-muted); font-style: italic; padding: var(--spacing-md) 0; }
+        .health-goal-item {
+            background: var(--bg-secondary); padding: var(--spacing-lg); border-radius: var(--radius-md); margin-bottom: var(--spacing-md);
+        }
+        .health-goal-item h4 { margin-bottom: var(--spacing-xs); font-size: 1rem; }
+        .health-goal-meta { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: var(--spacing-sm); }
+        .health-goal-progress { font-size: 1.5rem; font-weight: 800; color: var(--primary-color); margin-bottom: var(--spacing-sm); }
+        .pending-goals-section { margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--border-color); }
+        .pending-goals-section h4 { font-size: 1rem; margin-bottom: var(--spacing-md); color: var(--text-primary); }
+        .pending-goal-item {
+            display: flex; align-items: center; gap: 12px; padding: 12px 15px; background: var(--card-bg);
+            border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 8px; transition: all 0.3s;
+        }
+        .pending-goal-item:hover { border-color: var(--primary-color); box-shadow: var(--shadow-sm); }
+        .pending-goal-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent-color); }
+        .pending-goal-item label { font-size: 0.9rem; color: var(--text-primary); cursor: pointer; flex: 1; }
+        .goal-date-badge {
+            font-size: 0.7rem; padding: 2px 8px; border-radius: var(--radius-full);
+            background: var(--bg-secondary); color: var(--text-muted); white-space: nowrap;
+        }
+        .goal-date-badge.today { background: rgba(16, 185, 129, 0.1); color: var(--accent-color); }
+        .no-pending-msg {
+            text-align: center; padding: var(--spacing-lg); color: var(--text-muted);
+            font-style: italic; background: var(--bg-secondary); border-radius: var(--radius-md);
+        }
+        .settings-section { margin-top: var(--spacing-xl); }
+        .settings-card {
+            background: var(--card-bg); border-radius: var(--radius-lg); box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color); overflow: hidden;
+        }
+        .setting-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: var(--spacing-lg); border-bottom: 1px solid var(--border-color);
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-info { display: flex; align-items: center; gap: var(--spacing-md); }
+        .setting-info i { font-size: 1.2rem; color: var(--primary-color); width: 24px; text-align: center; }
+        .setting-info div h4 { margin: 0; font-size: 0.95rem; }
+        .setting-info div p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
+
+        /* Avatar styles */
+        .avatar-circle { position: relative; cursor: pointer; }
+        .avatar-circle img {
+            width: 100px; height: 100px; border-radius: 50%; object-fit: cover;
+            border: 3px solid var(--primary-color);
+        }
+        .avatar-circle .avatar-overlay {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 100px; height: 100px; border-radius: 50%; background: rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s;
+            color: white; font-size: 1.2rem;
+        }
+        .avatar-circle:hover .avatar-overlay { opacity: 1; }
+
+        /* Cropper Modal */
+        .crop-modal {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center;
+        }
+        .crop-modal.active { display: flex; }
+        .crop-container {
+            background: var(--card-bg); border-radius: var(--radius-lg); padding: var(--spacing-lg);
+            max-width: 500px; width: 90%; max-height: 90vh;
+        }
+        .crop-container h3 { margin-bottom: var(--spacing-md); color: var(--text-primary); }
+        .crop-image-wrapper { max-height: 400px; overflow: hidden; }
+        .crop-image-wrapper img { max-width: 100%; display: block; }
+        .crop-actions {
+            display: flex; gap: var(--spacing-md); justify-content: flex-end; margin-top: var(--spacing-lg);
+        }
+
+        /* Toast notification */
+        .profile-toast {
+            position: fixed; top: 20px; right: 20px; z-index: 11000; padding: 16px 24px;
+            border-radius: var(--radius-lg); color: white; font-weight: 600; transform: translateX(120%);
+            transition: transform 0.3s ease; box-shadow: var(--shadow-xl);
+        }
+        .profile-toast.show { transform: translateX(0); }
+        .profile-toast.success { background: var(--accent-color); }
+        .profile-toast.error { background: #ef4444; }
+
+        @media (max-width: 1024px) {
+            .profile-three-col { grid-template-columns: 1fr; }
+            .profile-stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body class="theme-ocean">
+    <!-- Theme loader FIRST -->
+    <script src="./js/theme-loader.js"></script>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo"><i class="fas fa-heartbeat"></i> <span>Digital Twin</span></div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="manual-entry.html" class="nav-link">Data Entry</a>
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="profile.html" class="nav-link active">Profile</a>
+                <a href="analytics.html" class="nav-link">Analytics</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Toast Notification -->
+    <div class="profile-toast" id="profileToast"></div>
+
+    <!-- Avatar Crop Modal -->
+    <div class="crop-modal" id="cropModal">
+        <div class="crop-container">
+            <h3><i class="fas fa-crop-alt"></i> Crop Your Avatar</h3>
+            <div class="crop-image-wrapper">
+                <img id="cropImage" src="" alt="Crop preview">
+            </div>
+            <div class="crop-actions">
+                <button class="btn btn-outline btn-sm" onclick="closeCropModal()">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="applyCrop()"><i class="fas fa-check"></i> Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file input for avatar -->
+    <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
+
+    <div class="page-container">
+        <div class="container">
+            <div class="profile-header">
+                <h1><i class="fas fa-user-circle"></i> My Profile</h1>
+                <p>Manage your personal information and health goals</p>
+            </div>
+
+            <div class="profile-three-col">
+
+                <!-- COLUMN 1: Personal Information -->
+                <div class="profile-card">
+                    <div class="card-header"><h3><i class="fas fa-user"></i> Personal Information</h3></div>
+                    <div class="card-body">
+                        <div class="user-avatar">
+                            <div class="avatar-circle" id="avatarCircle" onclick="document.getElementById('avatarFileInput').click()">
+                                <i class="fas fa-user" id="avatarIcon" style="font-size:2.5rem;color:white;"></i>
+                                <div class="avatar-overlay"><i class="fas fa-camera"></i></div>
+                            </div>
+                            <button class="btn btn-sm btn-outline" onclick="document.getElementById('avatarFileInput').click()" style="margin-top:10px;">
+                                Change Avatar
+                            </button>
+                        </div>
+                        <form class="profile-form" id="profileForm" onsubmit="updateProfile(event)">
+                            <div class="form-group"><label>First Name</label><input type="text" id="firstName" class="form-control"></div>
+                            <div class="form-group"><label>Last Name</label><input type="text" id="lastName" class="form-control"></div>
+                            <div class="form-group"><label>Email</label><input type="email" id="email" class="form-control"></div>
+                            <button type="submit" class="btn btn-primary" id="updateBtn">Update Profile</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- COLUMN 2: Statistics + Achievements -->
+                <div class="profile-card">
+                    <div class="card-header"><h3><i class="fas fa-chart-bar"></i> Your Statistics</h3></div>
+                    <div class="card-body">
+                        <div class="profile-stats-row">
+                            <div class="profile-stat-box"><h4 id="healthScoreVal">--</h4><p>Health Score</p></div>
+                            <div class="profile-stat-box"><h4 id="totalEntriesVal">--</h4><p>Total Entries</p></div>
+                            <div class="profile-stat-box"><h4 id="dayStreakVal">--</h4><p>Day Streak</p></div>
+                            <div class="profile-stat-box"><h4 id="activeGoalsVal">--</h4><p>Active Goals</p></div>
+                        </div>
+                        <div class="achievements-list">
+                            <h4 style="margin-top:var(--spacing-lg);">Recent Achievements</h4>
+                            <div id="achievementsList"><p class="no-achievements">Loading...</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMN 3: Health Goals + Pending -->
+                <div class="profile-card">
+                    <div class="card-header"><h3><i class="fas fa-bullseye"></i> Health Goals</h3></div>
+                    <div class="card-body">
+                        <div class="health-goal-item">
+                            <h4>Improve Sleep Quality</h4>
+                            <div class="health-goal-meta">Target: 8.0 hours | Current: <span id="sleepCurrent">--</span></div>
+                            <div class="health-goal-progress" id="sleepProgress">--%</div>
+                            <div class="progress"><div class="progress-bar" id="sleepProgressBar" style="width:0%"></div></div>
+                        </div>
+                        <div class="health-goal-item">
+                            <h4>Reduce Stress Level</h4>
+                            <div class="health-goal-meta">Target: 4.0 stress level | Current: <span id="stressCurrent">--</span></div>
+                            <div class="health-goal-progress" id="stressProgress">--%</div>
+                            <div class="progress"><div class="progress-bar" id="stressProgressBar" style="width:0%"></div></div>
+                        </div>
+                        <div class="pending-goals-section">
+                            <h4><i class="fas fa-tasks"></i> Pending Goals</h4>
+                            <div id="pendingGoalsList"><p class="no-pending-msg">Loading goals...</p></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS -->
+            <div class="settings-section">
+                <div class="settings-card">
+                    <div class="card-header"><h3><i class="fas fa-cog"></i> Settings</h3></div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <i class="fas fa-palette"></i>
+                            <div><h4>Theme</h4><p>Choose your preferred appearance</p></div>
+                        </div>
+                        <select id="themeSelect" class="form-control" style="width:auto;min-width:160px;">
+                            <option value="ocean">Ocean Blue</option>
+                            <option value="dark">Dark Mode</option>
+                            <option value="sunset">Sunset Purple</option>
+                            <option value="forest">Forest Green</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <i class="fas fa-download"></i>
+                            <div><h4>Export Data</h4><p>Download your dashboard data as CSV</p></div>
+                        </div>
+                        <button class="btn btn-outline btn-sm" id="exportDataBtn"><i class="fas fa-file-export"></i> Export CSV</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./js/theme-manager.js"></script>
+    <script>
+        const API_BASE = "http://127.0.0.1:8000/api/v1";
+        let cropper = null;
+        let croppedAvatarData = null;  // Stores cropped base64 image
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchAndRenderProfile();
+            setupThemeSelector();
+            setupExportButton();
+            setupAvatarUpload();
+        });
+
+        // =============================================
+        // TOAST NOTIFICATION
+        // =============================================
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('profileToast');
+            t.textContent = msg;
+            t.className = `profile-toast ${type} show`;
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // =============================================
+        // FETCH & RENDER PROFILE
+        // =============================================
+        async function fetchAndRenderProfile() {
+            const token = localStorage.getItem('access_token');
+            if (!token) { window.location.href = 'login.html'; return; }
+            const headers = { 'Authorization': `Bearer ${token}` };
+
+            try {
+                const userRes = await fetch(`${API_BASE}/users/me`, { headers });
+                const user = await userRes.json();
+                document.getElementById('firstName').value = user.first_name || '';
+                document.getElementById('lastName').value = user.last_name || '';
+                document.getElementById('email').value = user.email || '';
+
+                // Load avatar
+                if (user.avatar) {
+                    setAvatarImage(user.avatar);
+                }
+
+                const statsRes = await fetch(`${API_BASE}/profile/stats`, { headers });
+                const stats = await statsRes.json();
+
+                document.getElementById('healthScoreVal').innerText = stats.health_score || '--';
+                document.getElementById('totalEntriesVal').innerText = stats.total_entries || 0;
+                document.getElementById('dayStreakVal').innerText = stats.day_streak || 0;
+                document.getElementById('activeGoalsVal').innerText = stats.active_goals || 0;
+
+                renderAchievements(stats.achievements || []);
+                renderHealthGoals(stats.health_goals || []);
+                renderPendingGoals(stats.pending_goals || [], stats.no_pending);
+            } catch (err) { console.error('Profile fetch error:', err); }
+        }
+
+        // =============================================
+        // AVATAR: Setup upload + crop
+        // =============================================
+        function setupAvatarUpload() {
+            const fileInput = document.getElementById('avatarFileInput');
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    showToast('Please select an image file', 'error');
+                    return;
+                }
+
+                // Read file and open cropper
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const cropImg = document.getElementById('cropImage');
+                    cropImg.src = ev.target.result;
+                    document.getElementById('cropModal').classList.add('active');
+
+                    // Destroy old cropper if exists
+                    if (cropper) cropper.destroy();
+
+                    // Initialize Cropper.js with 1:1 ratio (Instagram style)
+                    setTimeout(() => {
+                        cropper = new Cropper(cropImg, {
+                            aspectRatio: 1,
+                            viewMode: 1,
+                            dragMode: 'move',
+                            autoCropArea: 0.8,
+                            cropBoxResizable: true,
+                            cropBoxMovable: true,
+                            guides: true,
+                            center: true,
+                            background: false,
+                        });
+                    }, 100);
+                };
+                reader.readAsDataURL(file);
+                fileInput.value = '';  // Reset so same file can be re-selected
+            });
+        }
+
+        function closeCropModal() {
+            document.getElementById('cropModal').classList.remove('active');
+            if (cropper) { cropper.destroy(); cropper = null; }
+        }
+
+        function applyCrop() {
+            if (!cropper) return;
+
+            // Get cropped canvas at 200x200 resolution
+            const canvas = cropper.getCroppedCanvas({ width: 200, height: 200 });
+            croppedAvatarData = canvas.toDataURL('image/jpeg', 0.8);
+
+            // Update avatar preview immediately
+            setAvatarImage(croppedAvatarData);
+            closeCropModal();
+            showToast('Avatar updated! Click "Update Profile" to save.', 'success');
+        }
+
+        function setAvatarImage(src) {
+            const circle = document.getElementById('avatarCircle');
+            const icon = document.getElementById('avatarIcon');
+
+            // Hide the icon
+            if (icon) icon.style.display = 'none';
+
+            // Check if img already exists
+            let img = circle.querySelector('img');
+            if (!img) {
+                img = document.createElement('img');
+                circle.insertBefore(img, circle.firstChild);
+            }
+            img.src = src;
+            img.alt = 'Avatar';
+        }
+
+        // =============================================
+        // UPDATE PROFILE (Save to DB)
+        // =============================================
+        async function updateProfile(e) {
+            e.preventDefault();
+            const btn = document.getElementById('updateBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            btn.disabled = true;
+
+            const token = localStorage.getItem('access_token');
+            const updateData = {
+                first_name: document.getElementById('firstName').value,
+                last_name: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+            };
+
+            // Include avatar if changed
+            if (croppedAvatarData) {
+                updateData.avatar = croppedAvatarData;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/users/me`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                if (res.ok) {
+                    croppedAvatarData = null;  // Reset after save
+                    showToast('Profile updated successfully!', 'success');
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || 'Update failed', 'error');
+                }
+            } catch (err) {
+                showToast('Network error. Please try again.', 'error');
+            }
+
+            btn.innerHTML = 'Update Profile';
+            btn.disabled = false;
+        }
+
+        // =============================================
+        // RENDER: Achievements
+        // =============================================
+        function renderAchievements(achievements) {
+            const container = document.getElementById('achievementsList');
+            if (!achievements || achievements.length === 0) {
+                container.innerHTML = '<p class="no-achievements">No achievements yet. Keep tracking!</p>';
+                return;
+            }
+            container.innerHTML = achievements.map(a => `
+                <div class="achievement-item"><i class="${a.icon}"></i><span>${a.title}</span></div>
+            `).join('');
+        }
+
+        // =============================================
+        // RENDER: Health Goals
+        // =============================================
+        function renderHealthGoals(healthGoals) {
+            if (!healthGoals || healthGoals.length < 2) return;
+            const sleep = healthGoals[0];
+            document.getElementById('sleepCurrent').innerText = sleep.current || 0;
+            document.getElementById('sleepProgress').innerText = sleep.progress + '%';
+            document.getElementById('sleepProgressBar').style.width = sleep.progress + '%';
+
+            const stress = healthGoals[1];
+            document.getElementById('stressCurrent').innerText = stress.current || 0;
+            document.getElementById('stressProgress').innerText = stress.progress + '%';
+            document.getElementById('stressProgressBar').style.width = stress.progress + '%';
+        }
+
+        // =============================================
+        // RENDER: Pending Goals
+        // =============================================
+        function renderPendingGoals(goals, noPending) {
+            const container = document.getElementById('pendingGoalsList');
+            if (!goals || goals.length === 0 || noPending) {
+                container.innerHTML = '<p class="no-pending-msg">No pending goal for today.</p>';
+                return;
+            }
+            container.innerHTML = goals.map(goal => {
+                const dateLabel = goal.is_today ? 'Today' : goal.date;
+                const badgeClass = goal.is_today ? 'goal-date-badge today' : 'goal-date-badge';
+                return `
+                    <div class="pending-goal-item" id="goal-item-${goal.id}">
+                        <input type="checkbox" id="goal-check-${goal.id}" onchange="completeGoal(${goal.id})">
+                        <label for="goal-check-${goal.id}">${goal.text}</label>
+                        <span class="${badgeClass}">${dateLabel}</span>
+                    </div>`;
+            }).join('');
+        }
+
+        // =============================================
+        // ACTION: Complete Goal
+        // =============================================
+        async function completeGoal(goalId) {
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch(`${API_BASE}/goals/${goalId}/complete`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    // Animate removal
+                    const item = document.getElementById(`goal-item-${goalId}`);
+                    if (item) {
+                        item.style.transition = 'all 0.3s ease';
+                        item.style.opacity = '0';
+                        item.style.transform = 'translateX(20px)';
+                        setTimeout(() => {
+                            item.remove();
+                            if (document.querySelectorAll('.pending-goal-item').length === 0) {
+                                document.getElementById('pendingGoalsList').innerHTML =
+                                    '<p class="no-pending-msg">No pending goal for today.</p>';
+                            }
+                        }, 300);
+                    }
+                    // ✅ Update counter with real count from backend
+                    document.getElementById('activeGoalsVal').innerText = data.active_count;
+                    showToast('Goal completed! 🎉', 'success');
+                }
+            } catch (err) { console.error('Error completing goal:', err); }
+        }
+
+        // =============================================
+        // SETTINGS: Theme
+        // =============================================
+               function setupThemeSelector() {
+            const select = document.getElementById('themeSelect');
+            if (!select) return;
+            const saved = localStorage.getItem('dt_theme') || 'ocean';
+            select.value = saved;
+
+            select.addEventListener('change', async (e) => {
+                const theme = e.target.value;
+
+                // 1. Save to localStorage (instant)
+                localStorage.setItem('dt_theme', theme);
+
+                // 2. Apply theme visually
+                if (window.ThemeManager) {
+                    window.ThemeManager.setTheme(theme);
+                } else {
+                    document.body.className = 'theme-' + theme;
+                }
+
+                // 3. ✅ Save to DATABASE (persists after logout)
+                const token = localStorage.getItem('access_token');
+                try {
+                    await fetch(`${API_BASE}/users/me`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ theme: theme })
+                    });
+                } catch (err) {
+                    console.error('Theme save error:', err);
+                }
+
+                showToast(`Theme changed to ${select.options[select.selectedIndex].text}`, 'success');
+            });
+        }
+
+        // =============================================
+        // SETTINGS: Export CSV
+        // =============================================
+        function setupExportButton() {
+            const btn = document.getElementById('exportDataBtn');
+            if (!btn) return;
+
+            btn.addEventListener('click', async () => {
+                const token = localStorage.getItem('access_token');
+                const headers = { 'Authorization': `Bearer ${token}` };
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
+                btn.disabled = true;
+
+                try {
+                    const [vRes, lRes, aRes, actRes] = await Promise.all([
+                        fetch(`${API_BASE}/data/vitals`, { headers }),
+                        fetch(`${API_BASE}/data/lifestyle`, { headers }),
+                        fetch(`${API_BASE}/data/academic`, { headers }),
+                        fetch(`${API_BASE}/data/activity`, { headers })
+                    ]);
+                    const vitals = await vRes.json();
+                    const lifestyle = await lRes.json();
+                    const academic = await aRes.json();
+                    const activity = await actRes.json();
+
+                    let csv = '=== VITALS ===\nTimestamp,Heart Rate,BP Sys,BP Dia,SpO2,Temp\n';
+                    (vitals.results||[]).forEach(v => { csv += `${v.ts},${v.hr},${v.bp_sys||''},${v.bp_dia||''},${v.spo2||''},${v.temp}\n`; });
+                    csv += '\n=== LIFESTYLE ===\nDate,Sleep Hrs,Stress,Diet,Water\n';
+                    (lifestyle.results||[]).forEach(l => { csv += `${l.date},${l.sleep_hrs},${l.stress_score},${l.diet_score},${l.water_glasses||''}\n`; });
+                    csv += '\n=== ACADEMIC ===\nDate,Study Hrs,Attendance,Assignments\n';
+                    (academic.results||[]).forEach(a => { csv += `${a.date},${a.study_hrs},${a.attendance_pct},${a.assignments_on_time||''}\n`; });
+                    csv += '\n=== ACTIVITY ===\nDate,Steps,Exercise Mins\n';
+                    (activity.results||[]).forEach(a => { csv += `${a.date},${a.steps},${a.exercise_mins}\n`; });
+
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `digital-twin-${new Date().toISOString().split('T')[0]}.csv`;
+                    link.click();
+                    window.URL.revokeObjectURL(url);
+
+                    showToast('Data exported successfully!', 'success');
+                } catch (err) {
+                    showToast('Export failed', 'error');
+                }
+                btn.innerHTML = '<i class="fas fa-file-export"></i> Export CSV';
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
