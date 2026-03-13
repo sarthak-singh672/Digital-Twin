@@ -4,7 +4,7 @@
 const API_CONFIG = {
     // For Production: Use 'https://digital-twin-production-5f4d.up.railway.app/api/v1'
     // For Local: Use 'http://127.0.0.1:8000/api/v1'
-    BASE_URL: = "https://digital-twin-production-5f4d.up.railway.app/api/v1",
+    const API_BASE = "https://digital-twin-production-5f4d.up.railway.app/api/v1",
     ENDPOINTS: {
         SIGNUP: '/auth/register',
         LOGIN: '/auth/token',
