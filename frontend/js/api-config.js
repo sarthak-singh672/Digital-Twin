@@ -1,10 +1,6 @@
 // Digital Twin - Backend API Configuration
-
-// Digital Twin - Backend API Configuration
 const API_CONFIG = {
-    // For Production: Use 'https://digital-twin-production-5f4d.up.railway.app/api/v1'
-    // For Local: Use 'http://127.0.0.1:8000/api/v1'
-    const API_BASE = "https://digital-twin-production-5f4d.up.railway.app/api/v1",
+    BASE_URL: (window.DIGITAL_TWIN_API_BASE_URL || `${window.location.origin}/api/v1`).replace(/\/$/, ''),
     ENDPOINTS: {
         SIGNUP: '/auth/register',
         LOGIN: '/auth/token',

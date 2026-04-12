@@ -18,7 +18,7 @@
      * "View Dashboard" - Go to dashboard
 
 3. **Dashboard Now Shows Real Backend Data**
-   - Fetches data from Django backend API
+   - Fetches data from FastAPI backend API
    - Displays actual user health records
    - Shows analytics based on real data
    - Personalized recommendations
@@ -50,7 +50,7 @@ frontend/
 │   ├── charts.css
 │   └── responsive.css
 └── js/
-    ├── api-config.js (backend connector)
+    ├── api.js (backend connector)
     ├── auth.js (NEW)
     ├── forms.js (UPDATED)
     ├── dashboard.js (UPDATED)
@@ -65,7 +65,7 @@ frontend/
 
 2. **Ensure Backend is Running**
    - Backend should be running at `http://localhost:8000`
-   - If backend runs on different port, update `js/api-config.js`
+   - If backend runs on different domain/port, set `window.DIGITAL_TWIN_API_BASE_URL`
 
 3. **Start Frontend Server**
    ```bash
@@ -98,8 +98,8 @@ frontend/
 
 ## Important Notes
 
-- **Backend Required**: This frontend connects to Django backend API
-- **API Configuration**: Check `js/api-config.js` for API endpoints
+- **Backend Required**: This frontend connects to FastAPI backend API
+- **API Configuration**: Check `js/api.js` for API endpoints
 - **Authentication**: All protected pages require login
 - **Data Persistence**: All data saved to PostgreSQL database
 

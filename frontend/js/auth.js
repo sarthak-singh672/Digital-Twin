@@ -112,7 +112,10 @@ class AuthHandler {
                    // ✅ NEW: Fetch theme from database after login
             try {
                 const token = localStorage.getItem('access_token');
-               const userRes = await fetch('https://digital-twin-production-5f4d.up.railway.app/api/v1/users/me',  {
+                const apiBase = (window.DigitalTwinAPI && window.DigitalTwinAPI.baseURL)
+                    ? window.DigitalTwinAPI.baseURL
+                    : `${window.location.origin}/api/v1`;
+                const userRes = await fetch(`${apiBase}/users/me`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 if (userRes.ok) {

@@ -296,8 +296,11 @@ async function loadAndRenderDashboardGoals() {
 // =============================================
 async function completeDashboardGoal(goalId) {
     const token = localStorage.getItem('access_token');
+    const apiBase = (window.DigitalTwinAPI && window.DigitalTwinAPI.baseURL)
+        ? window.DigitalTwinAPI.baseURL
+        : `${window.location.origin}/api/v1`;
     try {
-        const res = await fetch(`http://127.0.0.1:8000/api/v1/goals/${goalId}/complete`, {
+        const res = await fetch(`${apiBase}/goals/${goalId}/complete`, {
             method: 'PUT',
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
         });

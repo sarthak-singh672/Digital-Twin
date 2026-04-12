@@ -9,10 +9,10 @@ import os
 # 2. Create a new database named "dtstudent".
 # 3. Update 'your_username' and 'your_password' below.
 # This uses your Mac username 'sarthaksingh' and no password, which is the default for Postgres.app
-DATABASE_URL = "postgresql://sarthaksingh@localhost:5432/dtstudent"
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://sarthaksingh@localhost:5432/dtstudent")
 
 # --- Security Configuration ---
 # We will use these in Phase 4 for authentication
-SECRET_KEY = "your-super-secret-key-for-jwt"  # Change this to a random string
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = os.getenv("SECRET_KEY", "change-this-in-production")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))

@@ -364,7 +364,9 @@
     </div>
 
     <script>
-       const API_BASE = "https://digital-twin-production-5f4d.up.railway.app/api/v1";
+        const API_BASE = (window.DigitalTwinAPI && window.DigitalTwinAPI.baseURL)
+            ? window.DigitalTwinAPI.baseURL
+            : `${window.location.origin}/api/v1`;
         const token = localStorage.getItem('access_token');
         const headers = { 'Authorization': 'Bearer ' + token };
 
