@@ -5,19 +5,54 @@ This project is deployed as a **single FastAPI web app** that serves:
 - Frontend static files at `/frontend/...`
 - Root redirect `/` → `/frontend/login.html`
 
-## Deploy on Railway / Render / Fly.io
+## Recommended Platform: Railway (FastAPI + Postgres)
 
-1. Connect this GitHub repository to your hosting platform.
-2. Create a PostgreSQL database on the same platform.
-3. Configure build and start:
-   - Build/install: `pip install -r requirements.txt`
-   - Start: `uvicorn src.api.main:app --host 0.0.0.0 --port $PORT`
-4. Set environment variables:
-   - `DATABASE_URL` (your hosted Postgres URL)
-   - `SECRET_KEY` (strong random value)
-   - `ALGORITHM=HS256`
-   - `ACCESS_TOKEN_EXPIRE_MINUTES=30`
-5. Deploy.
+Railway is the fastest path for this repo because the backend and frontend are already served from one FastAPI app and Railway provides managed Postgres + simple public domain setup.
+
+## Railway Deployment (Click-by-Click)
+
+### 1) Sign in and connect GitHub
+1. Open `https://railway.app`.
+2. Click **Login** and choose **GitHub**.
+3. Authorize Railway if prompted.
+
+### 2) Create the project from this repository
+1. In Railway dashboard, click **New Project**.
+2. Click **Deploy from GitHub repo**.
+3. Select repository: `sarthak-singh672/Digital-Twin`.
+4. Wait for Railway to create your app service.
+
+### 3) Add PostgreSQL in the same project
+1. Inside the same Railway project, click **New**.
+2. Select **Database** → **PostgreSQL**.
+3. Wait until the Postgres service status becomes healthy.
+
+### 4) Configure build and start commands
+1. Open the app service created from GitHub (not the Postgres service).
+2. Go to **Settings** (or **Deploy**, depending on UI version).
+3. Set:
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn src.api.main:app --host 0.0.0.0 --port $PORT`
+4. Save changes.
+
+### 5) Set required environment variables
+1. Open app service → **Variables**.
+2. Add:
+   - `DATABASE_URL` = Postgres connection URL from Railway
+   - `SECRET_KEY` = long random string (required for production)
+   - `ALGORITHM` = `HS256`
+   - `ACCESS_TOKEN_EXPIRE_MINUTES` = `30`
+3. Save variables.
+
+### 6) Redeploy
+1. Trigger a deploy/redeploy from Railway UI.
+2. Wait until deployment is healthy.
+3. Check logs for startup success (uvicorn running, no config errors).
+
+### 7) Generate your live public URL
+1. Open app service → **Settings** → **Networking**.
+2. Click **Generate Domain** (or **Public Domain**).
+3. Copy URL (example: `https://your-app.up.railway.app`).
 
 ## Frontend API Configuration
 
@@ -29,8 +64,22 @@ Optional override (before loading app scripts):
 
 ## Post-deploy checks
 
-1. Open `/` and confirm it redirects to login page.
+1. Open `https://your-app.up.railway.app/` and confirm redirect to `/frontend/login.html`.
 2. Register and log in.
-3. Submit data from manual entry pages.
-4. Verify dashboard/profile/analytics load backend data.
-5. Confirm database records are written.
+3. Submit entries from manual-entry pages.
+4. Verify dashboard, profile, and analytics load backend data.
+5. Confirm records are saved in Railway Postgres.
+
+## Custom Domain (Optional)
+
+1. Buy/use a domain from your registrar.
+2. In Railway app service → **Networking**, click **Custom Domain**.
+3. Add your domain and copy Railway-provided DNS records.
+4. Add the same DNS records at your registrar (usually CNAME).
+5. Wait for DNS propagation and SSL issuance.
+
+## Browser and Google Search Visibility
+
+- You can open your Railway URL directly in Chrome immediately.
+- Google search indexing is not immediate.
+- For faster indexing, submit your domain in Google Search Console and request indexing.
