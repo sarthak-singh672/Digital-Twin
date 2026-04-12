@@ -13,6 +13,11 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://sarthaksingh@localhost:54
 
 # --- Security Configuration ---
 # We will use these in Phase 4 for authentication
-SECRET_KEY = os.getenv("SECRET_KEY", "change-this-in-production")
+APP_ENV = os.getenv("APP_ENV", "development").lower()
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    if APP_ENV == "production":
+        raise RuntimeError("SECRET_KEY environment variable is required in production.")
+    SECRET_KEY = "dev-insecure-secret-key"
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
