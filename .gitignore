@@ -16,3 +16,5 @@ config.py  # ONLY hide this if it contains your real password!
 # OS
 .DS_Store
 Thumbs.db
+# Local SQLite artifacts
+*.db
