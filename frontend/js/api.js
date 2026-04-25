@@ -13,7 +13,8 @@
             STATS: '/profile/stats'
         }
     };
-    const BASE_URL = API_CONFIG.BASE_URL;
+    var apiBaseUrl = API_CONFIG.BASE_URL;
+    window.BASE_URL = window.BASE_URL || apiBaseUrl;
 
     function getToken() {
         return localStorage.getItem('access_token');
@@ -77,7 +78,7 @@
     // --- API METHODS ---
 
     window.DigitalTwinAPI = {
-        baseURL: BASE_URL,
+        baseURL: apiBaseUrl,
         isAuthenticated,
         logout,
         getToken,
@@ -87,7 +88,7 @@
             params.append('username', username);
             params.append('password', password);
 
-            const response = await fetch(`${BASE_URL}/auth/token`, {
+            const response = await fetch(`${apiBaseUrl}/auth/token`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: params
@@ -99,7 +100,7 @@
         },
 
         async signup(userData) {
-            const response = await fetch(`${BASE_URL}/auth/register`, {
+            const response = await fetch(`${apiBaseUrl}/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData)
@@ -110,28 +111,28 @@
 
         // --- Data Submission ---
         async submitVitals(data) {
-            return authedFetch(`${BASE_URL}/data/vitals`, {
+            return authedFetch(`${apiBaseUrl}/data/vitals`, {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
         },
 
         async submitLifestyle(data) {
-            return authedFetch(`${BASE_URL}/data/lifestyle`, {
+            return authedFetch(`${apiBaseUrl}/data/lifestyle`, {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
         },
 
         async submitAcademic(data) {
-            return authedFetch(`${BASE_URL}/data/academic`, {
+            return authedFetch(`${apiBaseUrl}/data/academic`, {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
         },
 
         async submitActivity(data) {
-            return authedFetch(`${BASE_URL}/data/activity`, {
+            return authedFetch(`${apiBaseUrl}/data/activity`, {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
@@ -139,31 +140,31 @@
 
         // --- Retrieval ---
         async getProfile() {
-            return authedFetch(`${BASE_URL}/users/me`);
+            return authedFetch(`${apiBaseUrl}/users/me`);
         },
 
         async getAnalyticsSummary() {
-            return authedFetch(`${BASE_URL}/analytics/summary`);
+            return authedFetch(`${apiBaseUrl}/analytics/summary`);
         },
 
         async getVitals(limit) {
             const cleanLimit = ensureLimit(limit);
-            return authedFetch(`${BASE_URL}/data/vitals?limit=${cleanLimit}`);
+            return authedFetch(`${apiBaseUrl}/data/vitals?limit=${cleanLimit}`);
         },
 
         async getLifestyle(limit) {
             const cleanLimit = ensureLimit(limit);
-            return authedFetch(`${BASE_URL}/data/lifestyle?limit=${cleanLimit}`);
+            return authedFetch(`${apiBaseUrl}/data/lifestyle?limit=${cleanLimit}`);
         },
 
         async getAcademic(limit) {
             const cleanLimit = ensureLimit(limit);
-            return authedFetch(`${BASE_URL}/data/academic?limit=${cleanLimit}`);
+            return authedFetch(`${apiBaseUrl}/data/academic?limit=${cleanLimit}`);
         },
 
         async getActiveGoals() {
             try {
-                return await authedFetch(`${BASE_URL}/goals/active`);
+                return await authedFetch(`${apiBaseUrl}/goals/active`);
             } catch (e) {
                 return [];
             }
@@ -172,7 +173,7 @@
         // ✅ NEW: Get Activity data (for loading Physical Activity on form)
         async getActivity(limit) {
             const cleanLimit = ensureLimit(limit);
-            return authedFetch(`${BASE_URL}/data/activity?limit=${cleanLimit}`);
+            return authedFetch(`${apiBaseUrl}/data/activity?limit=${cleanLimit}`);
         }                                                          // ✅ LAST METHOD — NO COMMA
     };
 
