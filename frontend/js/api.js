@@ -13,7 +13,7 @@
             STATS: '/profile/stats'
         }
     };
-    var apiBaseUrl = API_CONFIG.BASE_URL;
+    const apiBaseUrl = API_CONFIG.BASE_URL;
     window.BASE_URL = window.BASE_URL || apiBaseUrl;
 
     function getToken() {
