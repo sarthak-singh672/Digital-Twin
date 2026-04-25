@@ -12,9 +12,12 @@ export default async function handler(req, res) {
   const targetUrl = new URL(incomingUrl.pathname, backendOrigin);
   targetUrl.search = incomingUrl.search;
 
-  const headers = { ...req.headers };
-  delete headers.host;
-  delete headers['content-length'];
+  const safeHeaderNames = ['authorization', 'content-type', 'accept', 'user-agent'];
+  const headers = {};
+  for (const name of safeHeaderNames) {
+    const value = req.headers[name];
+    if (value) headers[name] = value;
+  }
 
   let body;
   if (!['GET', 'HEAD'].includes(req.method)) {
@@ -47,6 +50,13 @@ export default async function handler(req, res) {
     const buffer = Buffer.from(await response.arrayBuffer());
     res.status(response.status).send(buffer);
   } catch (error) {
-    res.status(502).json({ detail: 'Upstream API unreachable' });
+    const requestId = req.headers['x-vercel-id'] || `req-${Date.now()}`;
+    console.error('[vercel-api-proxy] upstream request failed', {
+      requestId,
+      method: req.method,
+      path: incomingUrl.pathname,
+      error: error?.message || String(error)
+    });
+    res.status(502).json({ detail: 'Upstream API unreachable', request_id: requestId });
   }
 }
