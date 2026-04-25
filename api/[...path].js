@@ -10,7 +10,8 @@ export default async function handler(req, res) {
 
   const incomingUrl = new URL(req.url, `http://${req.headers.host}`);
   const proxiedPath = incomingUrl.pathname.replace(/^\/api\/?/, '');
-  const targetUrl = new URL(`/${proxiedPath}`, backendOrigin);
+  const targetPath = proxiedPath ? `/api/${proxiedPath}` : '/api';
+  const targetUrl = new URL(targetPath, backendOrigin);
   targetUrl.search = incomingUrl.search;
 
   const headers = { ...req.headers };
