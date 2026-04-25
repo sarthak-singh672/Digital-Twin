@@ -10,7 +10,7 @@ export default async function handler(req, res) {
 
   const incomingUrl = new URL(req.url, `http://${req.headers.host}`);
   const proxiedPath = incomingUrl.pathname.replace(/^\/api\/?/, '');
-  const targetUrl = new URL(`/api/${proxiedPath}`, backendOrigin);
+  const targetUrl = new URL(`/${proxiedPath}`, backendOrigin);
   targetUrl.search = incomingUrl.search;
 
   const headers = { ...req.headers };
@@ -38,12 +38,12 @@ export default async function handler(req, res) {
       body
     });
 
-    response.headers.forEach((value, key) => {
+    for (const [key, value] of response.headers.entries()) {
       const lowerKey = key.toLowerCase();
       if (!['content-length', 'transfer-encoding', 'content-encoding'].includes(lowerKey)) {
         res.setHeader(key, value);
       }
-    });
+    }
 
     const buffer = Buffer.from(await response.arrayBuffer());
     res.status(response.status).send(buffer);
