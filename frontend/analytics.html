@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Analytics - Digital Twin</title>
     <link rel="stylesheet" href="./css/styles.css">
     <link rel="stylesheet" href="./css/components.css">
@@ -241,7 +244,8 @@
     </style>
 </head>
 <body class="theme-ocean">
-    <script src="./js/theme-loader.js"></script>
+    <script src="./js/theme-loader.js?v=20260425"></script>
+    <script src="./js/api.js?v=20260425"></script>
 
     <nav class="navbar">
         <div class="nav-container">
@@ -364,11 +368,7 @@
     </div>
 
     <script>
-        const API_BASE = (window.DigitalTwinAPI && window.DigitalTwinAPI.baseURL)
-            ? window.DigitalTwinAPI.baseURL
-            : `${window.location.origin}/api/v1`;
-        const token = localStorage.getItem('access_token');
-        const headers = { 'Authorization': 'Bearer ' + token };
+        const apiClient = window.DigitalTwinAPI;
 
         // Store fetched data globally
         let allData = {
@@ -389,7 +389,7 @@
         // MAIN LOADER
         // =============================================
         document.addEventListener('DOMContentLoaded', async () => {
-            if (!token) { window.location.href = './login.html'; return; }
+            if (!apiClient || !apiClient.isAuthenticated()) { window.location.href = './login.html'; return; }
             await loadAllData();
             renderSleepTrends();
             renderCorrelationChart();
@@ -402,19 +402,15 @@
 
         async function loadAllData() {
             try {
-                const [summaryRes, vitalsRes, lifestyleRes, academicRes, activityRes] = await Promise.all([
-                    fetch(API_BASE + '/analytics/summary', { headers }),
-                    fetch(API_BASE + '/data/vitals', { headers }),
-                    fetch(API_BASE + '/data/lifestyle', { headers }),
-                    fetch(API_BASE + '/data/academic', { headers }),
-                    fetch(API_BASE + '/data/activity', { headers })
+                const [summary, v, l, a, act] = await Promise.all([
+                    apiClient.getAnalyticsSummary(),
+                    apiClient.getVitals(365),
+                    apiClient.getLifestyle(365),
+                    apiClient.getAcademic(365),
+                    apiClient.getActivity(365)
                 ]);
 
-                allData.summary = await summaryRes.json();
-                const v = await vitalsRes.json();
-                const l = await lifestyleRes.json();
-                const a = await academicRes.json();
-                const act = await activityRes.json();
+                allData.summary = summary;
 
                 allData.vitals = v.results || [];
                 allData.lifestyle = l.results || [];

@@ -295,18 +295,9 @@ async function loadAndRenderDashboardGoals() {
 // ✅ FIX: Complete goal from Dashboard (persists in DB)
 // =============================================
 async function completeDashboardGoal(goalId) {
-    const token = localStorage.getItem('access_token');
-    const apiBase = (window.DigitalTwinAPI && window.DigitalTwinAPI.baseURL)
-        ? window.DigitalTwinAPI.baseURL
-        : `${window.location.origin}/api/v1`;
     try {
-        const res = await fetch(`${apiBase}/goals/${goalId}/complete`, {
-            method: 'PUT',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-        });
-
-        if (res.ok) {
-            const data = await res.json();
+        const data = await window.DigitalTwinAPI.completeGoal(goalId);
+        if (data && data.status === 'success') {
 
             // Animate removal
             const item = document.getElementById(`dash-goal-${goalId}`);
@@ -329,7 +320,8 @@ async function completeDashboardGoal(goalId) {
             // ✅ Update header with real count from backend
             const headerEl = document.querySelector('.goals-section .section-header h3');
             if (headerEl) {
-                headerEl.innerHTML = `<i class="fas fa-bullseye"></i> Health Goals <span style="font-size:0.85rem;color:var(--text-muted);margin-left:8px;">(${data.active_count} active)</span>`;
+                const updatedCount = typeof data.active_count === 'number' ? data.active_count : 0;
+                headerEl.innerHTML = `<i class="fas fa-bullseye"></i> Health Goals <span style="font-size:0.85rem;color:var(--text-muted);margin-left:8px;">(${updatedCount} active)</span>`;
             }
         }
     } catch (err) {

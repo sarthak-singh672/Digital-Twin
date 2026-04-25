@@ -111,19 +111,10 @@ class AuthHandler {
             });
                    // ✅ NEW: Fetch theme from database after login
             try {
-                const token = localStorage.getItem('access_token');
-                const apiBase = (window.DigitalTwinAPI && window.DigitalTwinAPI.baseURL)
-                    ? window.DigitalTwinAPI.baseURL
-                    : `${window.location.origin}/api/v1`;
-                const userRes = await fetch(`${apiBase}/users/me`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                if (userRes.ok) {
-                    const userData = await userRes.json();
-                    const dbTheme = userData.theme || 'ocean';
-                    localStorage.setItem('dt_theme', dbTheme);
-                    console.log('[Auth] Loaded theme from DB:', dbTheme);
-                }
+                const userData = await window.DigitalTwinAPI.getProfile();
+                const dbTheme = userData.theme || 'ocean';
+                localStorage.setItem('dt_theme', dbTheme);
+                console.log('[Auth] Loaded theme from DB:', dbTheme);
             } catch (themeErr) {
                 console.log('[Auth] Could not fetch theme, using default');
             }

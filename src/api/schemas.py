@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, ConfigDict
 from datetime import date, datetime
-from typing import Optional, List
+from typing import Optional, List, Any, Dict
 
 
 # --- Auth & User Models ---
@@ -114,12 +114,14 @@ class RecommendationResponse(BaseModel):
 
 class AnalyticsSummary(BaseModel):
     risk_score: float
+    health_score: float
     risk_label: str
     timestamp: datetime
     vitals: VitalsSummary
     lifestyle: LifestyleSummary
     academic: AcademicSummary
     ai_metadata: Optional[dict] = None
+    chart_data: List[Dict[str, Any]] = []
     recommendations: List[RecommendationRead] = []
 
 
@@ -204,3 +206,38 @@ class GoalRead(BaseModel):
 
 class GoalUpdate(BaseModel):
     completed: bool
+
+
+class PendingGoal(BaseModel):
+    id: int
+    text: str
+    date: str
+    completed: bool
+    is_today: bool
+
+
+class AchievementItem(BaseModel):
+    icon: str
+    title: str
+    description: str
+
+
+class HealthGoalItem(BaseModel):
+    title: str
+    target: float
+    current: float
+    progress: float
+    unit: str
+
+
+class ProfileStatsResponse(BaseModel):
+    health_score: float
+    health_label: str
+    risk_score: float
+    day_streak: int
+    active_goals: int
+    total_entries: int
+    pending_goals: List[PendingGoal]
+    no_pending: bool
+    achievements: List[AchievementItem]
+    health_goals: List[HealthGoalItem]

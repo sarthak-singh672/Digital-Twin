@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Profile - Digital Twin</title>
     <link rel="stylesheet" href="./css/styles.css">
     <link rel="stylesheet" href="./css/components.css">
@@ -112,7 +115,7 @@
 </head>
 <body class="theme-ocean">
     <!-- Theme loader FIRST -->
-    <script src="./js/theme-loader.js"></script>
+    <script src="./js/theme-loader.js?v=20260425"></script>
 
     <nav class="navbar">
         <div class="nav-container">
@@ -248,12 +251,10 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
-    <script src="./js/api.js"></script>
-    <script src="./js/theme-manager.js"></script>
+    <script src="./js/api.js?v=20260425"></script>
+    <script src="./js/theme-manager.js?v=20260425"></script>
     <script>
-        const API_BASE = (window.DigitalTwinAPI && window.DigitalTwinAPI.baseURL)
-            ? window.DigitalTwinAPI.baseURL
-            : `${window.location.origin}/api/v1`;
+        const apiClient = window.DigitalTwinAPI;
 
         let cropper = null;
         let croppedAvatarData = null;
@@ -289,13 +290,10 @@
         // FETCH & RENDER PROFILE
         // =============================================
         async function fetchAndRenderProfile() {
-            const token = localStorage.getItem('access_token');
-            if (!token) { window.location.href = 'login.html'; return; }
-            const headers = { 'Authorization': `Bearer ${token}` };
+            if (!apiClient || !apiClient.isAuthenticated()) { window.location.href = 'login.html'; return; }
 
             try {
-                const userRes = await fetch(`${API_BASE}/users/me`, { headers });
-                const user = await userRes.json();
+                const user = await apiClient.getProfile();
                 document.getElementById('firstName').value = user.first_name || '';
                 document.getElementById('lastName').value = user.last_name || '';
                 document.getElementById('email').value = user.email || '';
@@ -305,8 +303,7 @@
                     setAvatarImage(user.avatar);
                 }
 
-                const statsRes = await fetch(`${API_BASE}/profile/stats`, { headers });
-                const stats = await statsRes.json();
+                const stats = await apiClient.getProfileStats();
 
                 document.getElementById('healthScoreVal').innerText = stats.health_score || '--';
                 document.getElementById('totalEntriesVal').innerText = stats.total_entries || 0;
@@ -408,7 +405,6 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             btn.disabled = true;
 
-            const token = localStorage.getItem('access_token');
             const updateData = {
                 first_name: document.getElementById('firstName').value,
                 last_name: document.getElementById('lastName').value,
@@ -421,24 +417,11 @@
             }
 
             try {
-                const res = await fetch(`${API_BASE}/users/me`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(updateData)
-                });
-
-                if (res.ok) {
-                    croppedAvatarData = null;  // Reset after save
-                    showToast('Profile updated successfully!', 'success');
-                } else {
-                    const err = await res.json();
-                    showToast(err.detail || 'Update failed', 'error');
-                }
+                await apiClient.updateProfile(updateData);
+                croppedAvatarData = null;  // Reset after save
+                showToast('Profile updated successfully!', 'success');
             } catch (err) {
-                showToast('Network error. Please try again.', 'error');
+                showToast(err.message || 'Network error. Please try again.', 'error');
             }
 
             btn.innerHTML = 'Update Profile';
@@ -500,15 +483,9 @@
         // ACTION: Complete Goal
         // =============================================
         async function completeGoal(goalId) {
-            const token = localStorage.getItem('access_token');
             try {
-                const res = await fetch(`${API_BASE}/goals/${goalId}/complete`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-                });
-
-                if (res.ok) {
-                    const data = await res.json();
+                const data = await apiClient.completeGoal(goalId);
+                if (data && data.status === 'success') {
                     // Animate removal
                     const item = document.getElementById(`goal-item-${goalId}`);
                     if (item) {
@@ -524,7 +501,7 @@
                         }, 300);
                     }
                     // ✅ Update counter with real count from backend
-                    document.getElementById('activeGoalsVal').innerText = data.active_count;
+                    document.getElementById('activeGoalsVal').innerText = (typeof data.active_count === 'number') ? data.active_count : 0;
                     showToast('Goal completed! 🎉', 'success');
                 }
             } catch (err) { console.error('Error completing goal:', err); }
@@ -553,16 +530,8 @@
                 }
 
                 // 3. ✅ Save to DATABASE (persists after logout)
-                const token = localStorage.getItem('access_token');
                 try {
-                    await fetch(`${API_BASE}/users/me`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ theme: theme })
-                    });
+                    await apiClient.updateProfile({ theme: theme });
                 } catch (err) {
                     console.error('Theme save error:', err);
                 }
@@ -579,22 +548,16 @@
             if (!btn) return;
 
             btn.addEventListener('click', async () => {
-                const token = localStorage.getItem('access_token');
-                const headers = { 'Authorization': `Bearer ${token}` };
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
                 btn.disabled = true;
 
                 try {
-                    const [vRes, lRes, aRes, actRes] = await Promise.all([
-                        fetch(`${API_BASE}/data/vitals`, { headers }),
-                        fetch(`${API_BASE}/data/lifestyle`, { headers }),
-                        fetch(`${API_BASE}/data/academic`, { headers }),
-                        fetch(`${API_BASE}/data/activity`, { headers })
+                    const [vitals, lifestyle, academic, activity] = await Promise.all([
+                        apiClient.getVitals(365),
+                        apiClient.getLifestyle(365),
+                        apiClient.getAcademic(365),
+                        apiClient.getActivity(365)
                     ]);
-                    const vitals = await vRes.json();
-                    const lifestyle = await lRes.json();
-                    const academic = await aRes.json();
-                    const activity = await actRes.json();
 
                     let csv = '=== VITALS ===\nTimestamp,Heart Rate,BP Sys,BP Dia,SpO2,Temp\n';
                     (vitals.results||[]).forEach(v => { csv += `${v.ts},${v.hr},${v.bp_sys||''},${v.bp_dia||''},${v.spo2||''},${v.temp}\n`; });

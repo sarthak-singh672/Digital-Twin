@@ -83,6 +83,31 @@ This repo includes:
 4. Verify dashboard, profile, and analytics load backend data.
 5. Confirm records are saved in Railway Postgres.
 
+## Frontend ↔ Backend Contract (frozen fields)
+
+Critical endpoints consumed by frontend pages:
+
+- `GET /api/v1/analytics/summary`
+  - Required keys: `risk_score`, `health_score`, `risk_label`, `timestamp`, `vitals`, `lifestyle`, `academic`, `chart_data`, `recommendations`
+- `GET /api/v1/profile/stats`
+  - Required keys: `health_score`, `health_label`, `risk_score`, `day_streak`, `active_goals`, `total_entries`, `pending_goals`, `no_pending`, `achievements`, `health_goals`
+- `PUT /api/v1/users/me`
+  - Supports profile/theme/avatar updates
+- `GET /api/v1/data/{vitals|lifestyle|academic|activity}?limit=...`
+  - Returns `{ "results": [...] }`
+- `PUT /api/v1/goals/{goal_id}/complete`
+  - Returns `{ "status": "success", "active_count": <int> }`
+
+Use `frontend/js/api.js` as the single canonical frontend API client.
+
+## Deployment hardening checklist (Vercel + backend)
+
+- Set Vercel env: `DIGITAL_TWIN_BACKEND_ORIGIN` to backend origin only.
+- Ensure backend env has `DATABASE_URL`, `SECRET_KEY`, `ALGORITHM`, `ACCESS_TOKEN_EXPIRE_MINUTES`.
+- Keep HTML non-cacheable and JS cache-busted/versioned to avoid stale bundle issues.
+- Verify `/api/*` traffic reaches backend proxy and frontend routes rewrite correctly.
+- Smoke test flow: login/signup → manual entry → dashboard → profile update/theme/avatar → analytics → goal completion.
+
 ## Custom Domain (Optional)
 
 1. Buy/use a domain from your registrar.

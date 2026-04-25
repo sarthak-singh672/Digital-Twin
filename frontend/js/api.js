@@ -147,6 +147,10 @@
             return authedFetch(`${apiBaseUrl}/analytics/summary`);
         },
 
+        async getProfileStats() {
+            return authedFetch(`${apiBaseUrl}/profile/stats`);
+        },
+
         async getVitals(limit) {
             const cleanLimit = ensureLimit(limit);
             return authedFetch(`${apiBaseUrl}/data/vitals?limit=${cleanLimit}`);
@@ -166,9 +170,22 @@
             try {
                 return await authedFetch(`${apiBaseUrl}/goals/active`);
             } catch (e) {
-                return [];
+                return { goals: [], active_count: 0 };
             }
         },                                                         // ✅ ADDED COMMA HERE
+
+        async updateProfile(data) {
+            return authedFetch(`${apiBaseUrl}/users/me`, {
+                method: 'PUT',
+                body: JSON.stringify(data || {})
+            });
+        },
+
+        async completeGoal(goalId) {
+            return authedFetch(`${apiBaseUrl}/goals/${goalId}/complete`, {
+                method: 'PUT'
+            });
+        },
 
         // ✅ NEW: Get Activity data (for loading Physical Activity on form)
         async getActivity(limit) {

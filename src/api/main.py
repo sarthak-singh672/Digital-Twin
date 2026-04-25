@@ -3,7 +3,7 @@ import numpy as np
 import json
 import os
 from typing import List, Optional
-from fastapi import FastAPI, Depends, HTTPException, status, APIRouter, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, status, APIRouter, BackgroundTasks, Query
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -303,13 +303,17 @@ def complete_goal(goal_id: int, db: Session = Depends(database.get_db), user=Dep
     if not goal: raise HTTPException(status_code=404, detail="Goal not found")
     goal.completed = True
     db.commit()
-    return {"status": "success"}
+    active_count = db.query(models.Goal).filter(
+        models.Goal.user_id == user.user_id,
+        models.Goal.completed == False
+    ).count()
+    return {"status": "success", "active_count": active_count}
 
 
 # =============================================
 # PROFILE STATS ENDPOINT
 # =============================================
-@router.get("/profile/stats")
+@router.get("/profile/stats", response_model=schemas.ProfileStatsResponse)
 def get_profile_stats(db: Session = Depends(database.get_db), user=Depends(auth.get_current_user)):
     latest_pred = db.query(models.Prediction).filter(models.Prediction.user_id == user.user_id).order_by(
         desc(models.Prediction.pred_ts)).first()
@@ -328,8 +332,10 @@ def get_profile_stats(db: Session = Depends(database.get_db), user=Depends(auth.
     display_label = "Optimal" if health_score > 75 else "Normal" if health_score >= 60 else "At Risk"
 
     today = date.today()
-    pending_goals = db.query(models.Goal).filter(models.Goal.user_id == user.user_id,
-                                                 models.Goal.completed == False).all()
+    pending_goals = db.query(models.Goal).filter(
+        models.Goal.user_id == user.user_id,
+        models.Goal.completed == False
+    ).order_by(models.Goal.date.desc()).all()
 
     today_lifestyle = db.query(models.Lifestyle).filter(models.Lifestyle.user_id == user.user_id,
                                                         models.Lifestyle.date == today).first()
@@ -351,11 +357,36 @@ def get_profile_stats(db: Session = Depends(database.get_db), user=Depends(auth.
         stress_progress = 100.0 if avg_stress <= stress_target else min(round((stress_target / avg_stress) * 100, 1),
                                                                         100)
 
+    total_entries = (
+        db.query(models.Vitals).filter(models.Vitals.user_id == user.user_id).count()
+        + db.query(models.Lifestyle).filter(models.Lifestyle.user_id == user.user_id).count()
+        + db.query(models.Academic).filter(models.Academic.user_id == user.user_id).count()
+        + db.query(models.Activity).filter(models.Activity.user_id == user.user_id).count()
+    )
+
+    pending_goals_payload = [
+        {
+            "id": g.id,
+            "text": g.text,
+            "date": g.date.isoformat(),
+            "completed": g.completed,
+            "is_today": g.date == today
+        }
+        for g in pending_goals
+    ]
+
+    achievements = calculate_achievements(db, user.user_id, health_score, len(pending_goals))
+
     return {
         "health_score": health_score,
         "health_label": display_label,
+        "risk_score": ai_risk,
         "day_streak": calculate_day_streak(db, user.user_id),
         "active_goals": len(pending_goals),
+        "total_entries": total_entries,
+        "pending_goals": pending_goals_payload,
+        "no_pending": len(pending_goals_payload) == 0,
+        "achievements": achievements,
         "health_goals": [
             {"title": "Improve Sleep Quality", "target": sleep_target, "current": current_sleep,
              "progress": sleep_progress, "unit": "hours"},
@@ -368,7 +399,7 @@ def get_profile_stats(db: Session = Depends(database.get_db), user=Depends(auth.
 # =============================================
 # ANALYTICS SUMMARY
 # =============================================
-@router.get("/analytics/summary")
+@router.get("/analytics/summary", response_model=schemas.AnalyticsSummary)
 def get_analytics_summary(db: Session = Depends(database.get_db), user=Depends(auth.get_current_user)):
     latest = db.query(models.Prediction).filter(models.Prediction.user_id == user.user_id).order_by(
         desc(models.Prediction.pred_ts)).first()
@@ -388,13 +419,62 @@ def get_analytics_summary(db: Session = Depends(database.get_db), user=Depends(a
     display_label = "Optimal" if final_health_score > 75 else "Normal" if final_health_score >= 60 else "At Risk"
 
     db_recs = db.query(models.Recommendation).filter(models.Recommendation.user_id == user.user_id).all()
-    parsed_recs = [{"id": r.id, "type": r.type, "title": r.title, "explanation": r.explanation,
+    parsed_recs = [{"id": r.id, "created_at": r.created_at, "type": r.type, "title": r.title, "explanation": r.explanation,
                     "causes": json.loads(r.causes) if r.causes else [], "goals": json.loads(r.goals) if r.goals else []}
                    for r in db_recs]
 
+    vitals_records = db.query(models.Vitals).filter(models.Vitals.user_id == user.user_id).all()
+    lifestyle_records = db.query(models.Lifestyle).filter(models.Lifestyle.user_id == user.user_id).all()
+    academic_records = db.query(models.Academic).filter(models.Academic.user_id == user.user_id).all()
+
+    avg_heart_rate = (
+        round(sum(float(v.hr or 0) for v in vitals_records) / len(vitals_records), 2)
+        if vitals_records else 0.0
+    )
+    avg_spo2 = (
+        round(sum(float(v.spo2 or 0) for v in vitals_records) / len(vitals_records), 2)
+        if vitals_records else 0.0
+    )
+    avg_sleep = (
+        round(sum(float(l.sleep_hrs or 0) for l in lifestyle_records) / len(lifestyle_records), 2)
+        if lifestyle_records else 0.0
+    )
+    avg_stress = (
+        round(sum(float(l.stress_score or 0) for l in lifestyle_records) / len(lifestyle_records), 2)
+        if lifestyle_records else 0.0
+    )
+    avg_study_hours = (
+        round(sum(float(a.study_hrs or 0) for a in academic_records) / len(academic_records), 2)
+        if academic_records else 0.0
+    )
+    avg_attendance = (
+        round(sum(float(a.attendance_pct or 0) for a in academic_records) / len(academic_records), 2)
+        if academic_records else 0.0
+    )
+
     return {
+        "risk_score": ai_risk,
         "health_score": final_health_score,
         "risk_label": display_label,
+        "timestamp": datetime.now(),
+        "vitals": {
+            "avg_heart_rate": avg_heart_rate,
+            "avg_spo2": avg_spo2,
+            "count": len(vitals_records)
+        },
+        "lifestyle": {
+            "avg_sleep": avg_sleep,
+            "avg_stress": avg_stress,
+            "count": len(lifestyle_records)
+        },
+        "academic": {
+            "avg_study_hours": avg_study_hours,
+            "avg_attendance": avg_attendance,
+            "count": len(academic_records)
+        },
+        "ai_metadata": {
+            "active_alerts": len(active_alerts)
+        },
         "chart_data": chart_data,
         "recommendations": parsed_recs
     }
@@ -402,12 +482,69 @@ def get_analytics_summary(db: Session = Depends(database.get_db), user=Depends(a
 
 # --- Standard Getters & User Logic ---
 @router.get("/data/vitals", response_model=schemas.VitalsResponse)
-def get_vitals(db: Session = Depends(database.get_db), user=Depends(auth.get_current_user)):
-    return {"results": db.query(models.Vitals).filter(models.Vitals.user_id == user.user_id).all()}
+def get_vitals(
+        limit: int = Query(default=30, ge=1, le=365),
+        db: Session = Depends(database.get_db),
+        user=Depends(auth.get_current_user)
+):
+    records = db.query(models.Vitals).filter(models.Vitals.user_id == user.user_id).order_by(desc(models.Vitals.ts)).limit(limit).all()
+    return {"results": list(reversed(records))}
+
+
+@router.get("/data/lifestyle", response_model=schemas.LifestyleResponse)
+def get_lifestyle(
+        limit: int = Query(default=30, ge=1, le=365),
+        db: Session = Depends(database.get_db),
+        user=Depends(auth.get_current_user)
+):
+    records = db.query(models.Lifestyle).filter(models.Lifestyle.user_id == user.user_id).order_by(desc(models.Lifestyle.date)).limit(limit).all()
+    return {"results": list(reversed(records))}
+
+
+@router.get("/data/academic", response_model=schemas.AcademicResponse)
+def get_academic(
+        limit: int = Query(default=30, ge=1, le=365),
+        db: Session = Depends(database.get_db),
+        user=Depends(auth.get_current_user)
+):
+    records = db.query(models.Academic).filter(models.Academic.user_id == user.user_id).order_by(desc(models.Academic.date)).limit(limit).all()
+    return {"results": list(reversed(records))}
+
+
+@router.get("/data/activity", response_model=schemas.ActivityResponse)
+def get_activity(
+        limit: int = Query(default=30, ge=1, le=365),
+        db: Session = Depends(database.get_db),
+        user=Depends(auth.get_current_user)
+):
+    records = db.query(models.Activity).filter(models.Activity.user_id == user.user_id).order_by(desc(models.Activity.date)).limit(limit).all()
+    return {"results": list(reversed(records))}
 
 
 @router.get("/users/me", response_model=schemas.User)
 def read_users_me(user: models.User = Depends(auth.get_current_user)):
+    return user
+
+
+@router.put("/users/me", response_model=schemas.User)
+def update_users_me(
+        payload: schemas.UserUpdate,
+        db: Session = Depends(database.get_db),
+        user=Depends(auth.get_current_user)
+):
+    updates = payload.model_dump(exclude_unset=True)
+    if not updates:
+        return user
+
+    if "email" in updates and updates["email"] != user.email:
+        existing = db.query(models.User).filter(models.User.email == updates["email"]).first()
+        if existing and existing.user_id != user.user_id:
+            raise HTTPException(status_code=400, detail="Email already registered")
+
+    for key, value in updates.items():
+        setattr(user, key, value)
+    db.commit()
+    db.refresh(user)
     return user
 
 
