@@ -62,6 +62,19 @@ Frontend API calls default to same-origin:
 Optional override (before loading app scripts):
 - `window.DIGITAL_TWIN_API_BASE_URL = "https://your-domain/api/v1"`
 
+## Vercel Frontend + External Backend Integration
+
+If frontend is deployed on Vercel and backend is deployed elsewhere:
+
+1. Deploy this repository to Vercel.
+2. In Vercel Project Settings → Environment Variables, set:
+   - `DIGITAL_TWIN_BACKEND_ORIGIN` = backend origin only (example: `https://your-api.up.railway.app`)
+3. Redeploy.
+
+This repo includes:
+- `api/[...path].js` proxy: forwards Vercel `/api/*` requests to `${DIGITAL_TWIN_BACKEND_ORIGIN}/api/*`
+- `vercel.json` rewrites: serves frontend pages/assets from `/frontend/*` while keeping API calls same-origin on Vercel.
+
 ## Post-deploy checks
 
 1. Open `https://your-app.up.railway.app/` and confirm redirect to `/frontend/login.html`.
