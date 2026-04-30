@@ -242,6 +242,7 @@
 </head>
 <body class="theme-ocean">
     <script src="./js/theme-loader.js"></script>
+    <script src="./js/api-config.js"></script>
 
     <nav class="navbar">
         <div class="nav-container">
@@ -364,7 +365,7 @@
     </div>
 
     <script>
-       const API_BASE = "https://digital-twin-production-5f4d.up.railway.app/api/v1";
+        const BASE_URL = API_CONFIG.BASE_URL;
         const token = localStorage.getItem('access_token');
         const headers = { 'Authorization': 'Bearer ' + token };
 
@@ -401,11 +402,11 @@
         async function loadAllData() {
             try {
                 const [summaryRes, vitalsRes, lifestyleRes, academicRes, activityRes] = await Promise.all([
-                    fetch(API_BASE + '/analytics/summary', { headers }),
-                    fetch(API_BASE + '/data/vitals', { headers }),
-                    fetch(API_BASE + '/data/lifestyle', { headers }),
-                    fetch(API_BASE + '/data/academic', { headers }),
-                    fetch(API_BASE + '/data/activity', { headers })
+                    fetch(`${BASE_URL}/analytics/summary`, { headers }),
+                    fetch(`${BASE_URL}/data/vitals`, { headers }),
+                    fetch(`${BASE_URL}/data/lifestyle`, { headers }),
+                    fetch(`${BASE_URL}/data/academic`, { headers }),
+                    fetch(`${BASE_URL}/data/activity`, { headers })
                 ]);
 
                 allData.summary = await summaryRes.json();

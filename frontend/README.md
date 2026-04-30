@@ -64,8 +64,8 @@ frontend/
 1. **Extract this ZIP file**
 
 2. **Ensure Backend is Running**
-   - Backend should be running at `http://localhost:8000`
-   - If backend runs on different port, update `js/api-config.js`
+   - Backend should be running at `https://digital-twin-backend-ndby.onrender.com`
+   - If backend runs on a different URL, update `js/api-config.js`
 
 3. **Start Frontend Server**
    ```bash
@@ -109,7 +109,7 @@ frontend/
 - Solution: Backend might not be running. Start backend server.
 
 **Issue: Login doesn't work**
-- Solution: Check if backend is accessible at `http://localhost:8000`
+- Solution: Check if backend is accessible at `https://digital-twin-backend-ndby.onrender.com`
 
 **Issue: Data not showing on dashboard**
 - Solution: Add data via "Data Entry" page first

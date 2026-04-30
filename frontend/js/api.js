@@ -3,16 +3,7 @@
 (function(window) {
     'use strict';
 
-   const API_CONFIG = {
-    // For Production: Use 'https://digital-twin-production-5f4d.up.railway.app/api/v1'
-    BASE_URL: "https://digital-twin-production-5f4d.up.railway.app/api/v1",
-    ENDPOINTS: {
-        SIGNUP: '/auth/register',
-        LOGIN: '/auth/token',
-        PROFILE: '/users/me',
-        STATS: '/profile/stats'
-    }
-};
+    const BASE_URL = API_CONFIG.BASE_URL;
 
     function getToken() {
         return localStorage.getItem('access_token');
