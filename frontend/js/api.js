@@ -41,7 +41,8 @@
             ...options.headers,
         };
         const method = (options.method || 'GET').toUpperCase();
-        if (method !== 'GET' && !headers['Content-Type']) {
+        const hasContentType = Object.keys(headers).some((key) => key.toLowerCase() === 'content-type');
+        if (method !== 'GET' && !hasContentType) {
             headers['Content-Type'] = 'application/json';
         }
 
