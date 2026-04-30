@@ -238,7 +238,9 @@ def submit_vitals(data: schemas.VitalsData, bg: BackgroundTasks, db: Session = D
         for k, v in data.model_dump(exclude_unset=True).items(): setattr(existing, k, v)
         existing.ts = record_ts
     else:
-        db.add(models.Vitals(user_id=user.user_id, **data.model_dump(), ts=record_ts))
+        data_dict = data.model_dump()
+        data_dict["ts"] = record_ts
+        db.add(models.Vitals(user_id=user.user_id, **data_dict))
     db.commit()
     bg.add_task(run_full_analysis, db, user)
     return {"status": "success"}
