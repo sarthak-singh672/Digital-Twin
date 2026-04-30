@@ -407,6 +407,18 @@ def get_analytics_summary(db: Session = Depends(database.get_db), user=Depends(a
 
 
 # --- Standard Getters & User Logic ---
+@router.get("/data/lifestyle")
+def get_lifestyle(db: Session = Depends(database.get_db), user=Depends(auth.get_current_user)):
+    return {"results": db.query(models.Lifestyle).filter(models.Lifestyle.user_id == user.user_id).order_by(models.Lifestyle.date.desc()).limit(30).all()}
+
+@router.get("/data/activity")
+def get_activity(db: Session = Depends(database.get_db), user=Depends(auth.get_current_user)):
+    return {"results": db.query(models.Activity).filter(models.Activity.user_id == user.user_id).order_by(models.Activity.date.desc()).limit(30).all()}
+
+@router.get("/data/academic")
+def get_academic(db: Session = Depends(database.get_db), user=Depends(auth.get_current_user)):
+    return {"results": db.query(models.Academic).filter(models.Academic.user_id == user.user_id).order_by(models.Academic.date.desc()).limit(30).all()}
+
 @router.get("/data/vitals", response_model=schemas.VitalsResponse)
 def get_vitals(db: Session = Depends(database.get_db), user=Depends(auth.get_current_user)):
     return {"results": db.query(models.Vitals).filter(models.Vitals.user_id == user.user_id).all()}
