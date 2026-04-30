@@ -297,7 +297,7 @@ async function loadAndRenderDashboardGoals() {
 async function completeDashboardGoal(goalId) {
     const token = localStorage.getItem('access_token');
     try {
-        const res = await fetch(`http://127.0.0.1:8000/api/v1/goals/${goalId}/complete`, {
+        const res = await fetch(`${API_CONFIG.BASE_URL}/goals/${goalId}/complete`, {
             method: 'PUT',
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
         });

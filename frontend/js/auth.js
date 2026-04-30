@@ -1,4 +1,5 @@
 // Authentication Handler
+const BASE_URL = API_CONFIG.BASE_URL;
 
 class AuthHandler {
     constructor() {
@@ -112,7 +113,7 @@ class AuthHandler {
                    // ✅ NEW: Fetch theme from database after login
             try {
                 const token = localStorage.getItem('access_token');
-               const userRes = await fetch('https://digital-twin-production-5f4d.up.railway.app/api/v1/users/me',  {
+                const userRes = await fetch(`${BASE_URL}/users/me`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 if (userRes.ok) {

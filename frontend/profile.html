@@ -248,11 +248,12 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <script src="./js/api-config.js"></script>
     <script src="./js/api.js"></script>
     <script src="./js/theme-manager.js"></script>
     <script>
-       // 1. Apna LIVE API URL yahan daalein
-        const API_BASE = "https://digital-twin-production-5f4d.up.railway.app/api/v1";
+        // 1. Apna LIVE API URL yahan daalein
+        const BASE_URL = API_CONFIG.BASE_URL;
 
         let cropper = null;
         let croppedAvatarData = null;
@@ -293,7 +294,7 @@
             const headers = { 'Authorization': `Bearer ${token}` };
 
             try {
-                const userRes = await fetch(`${API_BASE}/users/me`, { headers });
+                const userRes = await fetch(`${BASE_URL}/users/me`, { headers });
                 const user = await userRes.json();
                 document.getElementById('firstName').value = user.first_name || '';
                 document.getElementById('lastName').value = user.last_name || '';
@@ -304,7 +305,7 @@
                     setAvatarImage(user.avatar);
                 }
 
-                const statsRes = await fetch(`${API_BASE}/profile/stats`, { headers });
+                const statsRes = await fetch(`${BASE_URL}/profile/stats`, { headers });
                 const stats = await statsRes.json();
 
                 document.getElementById('healthScoreVal').innerText = stats.health_score || '--';
@@ -420,7 +421,7 @@
             }
 
             try {
-                const res = await fetch(`${API_BASE}/users/me`, {
+                const res = await fetch(`${BASE_URL}/users/me`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -501,7 +502,7 @@
         async function completeGoal(goalId) {
             const token = localStorage.getItem('access_token');
             try {
-                const res = await fetch(`${API_BASE}/goals/${goalId}/complete`, {
+                const res = await fetch(`${BASE_URL}/goals/${goalId}/complete`, {
                     method: 'PUT',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
                 });
@@ -554,7 +555,7 @@
                 // 3. ✅ Save to DATABASE (persists after logout)
                 const token = localStorage.getItem('access_token');
                 try {
-                    await fetch(`${API_BASE}/users/me`, {
+                    await fetch(`${BASE_URL}/users/me`, {
                         method: 'PUT',
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -585,10 +586,10 @@
 
                 try {
                     const [vRes, lRes, aRes, actRes] = await Promise.all([
-                        fetch(`${API_BASE}/data/vitals`, { headers }),
-                        fetch(`${API_BASE}/data/lifestyle`, { headers }),
-                        fetch(`${API_BASE}/data/academic`, { headers }),
-                        fetch(`${API_BASE}/data/activity`, { headers })
+                        fetch(`${BASE_URL}/data/vitals`, { headers }),
+                        fetch(`${BASE_URL}/data/lifestyle`, { headers }),
+                        fetch(`${BASE_URL}/data/academic`, { headers }),
+                        fetch(`${BASE_URL}/data/activity`, { headers })
                     ]);
                     const vitals = await vRes.json();
                     const lifestyle = await lRes.json();
