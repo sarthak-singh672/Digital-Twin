@@ -37,12 +37,16 @@
         }
 
         const headers = {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
             ...options.headers,
         };
+        const method = (options.method || 'GET').toUpperCase();
+        const hasContentType = Object.keys(headers).some((key) => key.toLowerCase() === 'content-type');
+        if (method !== 'GET' && !hasContentType) {
+            headers['Content-Type'] = 'application/json';
+        }
 
-        const response = await fetch(url, { ...options, headers });
+        const response = await fetch(url, { ...options, method, headers });
         return await handleResponse(response);
     }
 
@@ -137,17 +141,17 @@
 
         async getVitals(limit) {
             const cleanLimit = ensureLimit(limit);
-            return authedFetch(`${BASE_URL}/data/vitals?limit=${cleanLimit}`);
+            return authedFetch(`${BASE_URL}/data/vitals?limit=${cleanLimit}`, { method: 'GET' });
         },
 
         async getLifestyle(limit) {
             const cleanLimit = ensureLimit(limit);
-            return authedFetch(`${BASE_URL}/data/lifestyle?limit=${cleanLimit}`);
+            return authedFetch(`${BASE_URL}/data/lifestyle?limit=${cleanLimit}`, { method: 'GET' });
         },
 
         async getAcademic(limit) {
             const cleanLimit = ensureLimit(limit);
-            return authedFetch(`${BASE_URL}/data/academic?limit=${cleanLimit}`);
+            return authedFetch(`${BASE_URL}/data/academic?limit=${cleanLimit}`, { method: 'GET' });
         },
 
         async getActiveGoals() {
@@ -161,7 +165,7 @@
         // ✅ NEW: Get Activity data (for loading Physical Activity on form)
         async getActivity(limit) {
             const cleanLimit = ensureLimit(limit);
-            return authedFetch(`${BASE_URL}/data/activity?limit=${cleanLimit}`);
+            return authedFetch(`${BASE_URL}/data/activity?limit=${cleanLimit}`, { method: 'GET' });
         }                                                          // ✅ LAST METHOD — NO COMMA
     };
 
