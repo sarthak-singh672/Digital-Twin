@@ -26,12 +26,10 @@ app = FastAPI(
     description="Backend API for the Student Edition Digital Twin project.",
     version="1.5.0"
 )
+
 @app.on_event("startup")
 async def startup_event():
     models.Base.metadata.create_all(bind=database.engine)
-# ✅ CRITICAL FIX: Create tables on startup
-# This ensures that when the new Postgres container starts, all tables (users, vitals, etc.) are built.
-models.Base.metadata.create_all(bind=database.engine)
 
 app.add_middleware(
     CORSMiddleware,
