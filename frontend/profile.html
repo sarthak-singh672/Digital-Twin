@@ -384,10 +384,13 @@
                         return;
                     }
 
-                    errorEl.textContent = 'Incorrect password. Please try again.';
+                    const authErrorStatuses = [400, 401, 422];
+                    errorEl.textContent = authErrorStatuses.includes(response.status)
+                        ? 'Incorrect password. Please try again.'
+                        : 'Unable to confirm logout. Please try again.';
                     errorEl.style.display = 'block';
                 } catch (err) {
-                    errorEl.textContent = 'Incorrect password. Please try again.';
+                    errorEl.textContent = 'Unable to confirm logout. Please try again.';
                     errorEl.style.display = 'block';
                 } finally {
                     confirmBtn.disabled = false;
