@@ -485,6 +485,27 @@ def get_vitals(db: Session = Depends(database.get_db), user=Depends(auth.get_cur
     return {"results": db.query(models.Vitals).filter(models.Vitals.user_id == user.user_id).all()}
 
 
+@router.put("/users/me", response_model=schemas.User)
+def update_users_me(update: schemas.UserUpdate,
+                    db: Session = Depends(database.get_db),
+                    user: models.User = Depends(auth.get_current_user)):
+    update_data = update.model_dump(exclude_unset=True)
+    if not update_data:
+        return user
+
+    if update_data.get("email") and update_data["email"] != user.email:
+        existing = db.query(models.User).filter(models.User.email == update_data["email"]).first()
+        if existing and existing.user_id != user.user_id:
+            raise HTTPException(status_code=400, detail="Email already registered")
+
+    for field, value in update_data.items():
+        setattr(user, field, value)
+
+    db.commit()
+    db.refresh(user)
+    return user
+
+
 @router.get("/users/me", response_model=schemas.User)
 def read_users_me(user: models.User = Depends(auth.get_current_user)):
     return user

@@ -98,11 +98,13 @@
                                placeholder="Re-enter your password">
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group terms-consent">
                         <label class="checkbox-label">
                             <input type="checkbox" id="agreeTerms" required>
-                            <span>I agree to the Terms of Service and Privacy Policy</span>
+                            <span>I agree to the</span>
                         </label>
+                        <button type="button" class="terms-link" id="termsLink">Terms &amp; Conditions</button>
+                        <span class="terms-text">and Privacy Policy</span>
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-block">
@@ -125,6 +127,34 @@
             <div id="authError" class="alert alert-error" style="display: none;"></div>
 
             <div id="authSuccess" class="alert alert-success" style="display: none;"></div>
+        </div>
+    </div>
+    <div class="modal" id="termsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Terms &amp; Conditions</h3>
+                <button class="modal-close" id="termsCloseBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Effective Date:</strong> May 5, 2026</p>
+                <p>By creating an account, you agree to the following terms for using the Digital Twin Health platform
+                    (the “Service”).</p>
+                <ul>
+                    <li><strong>Personal Data Usage:</strong> We store your profile details, preferences, and avatar to
+                        deliver personalized insights and improve your experience.</li>
+                    <li><strong>Email Data Handling:</strong> Your email is used for account access, security alerts,
+                        and essential service updates. We do not sell your email or use it for marketing without
+                        consent.</li>
+                    <li><strong>User Responsibilities:</strong> You are responsible for providing accurate
+                        information, keeping your credentials secure, and using the Service lawfully.</li>
+                    <li><strong>Privacy &amp; Security:</strong> We apply reasonable safeguards to protect your data.
+                        You may update or request deletion of your information as permitted by law.</li>
+                </ul>
+                <p>By proceeding, you acknowledge these terms and agree to our data practices.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="termsAcceptBtn">Close</button>
+            </div>
         </div>
     </div>
     <script src="./js/theme-loader.js"></script>
