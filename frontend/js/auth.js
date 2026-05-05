@@ -13,6 +13,10 @@ class AuthHandler {
         this.errorDiv = document.getElementById('authError');
         this.successDiv = document.getElementById('authSuccess');
         this.registeredBanner = document.getElementById('registeredBanner');
+        this.termsLink = document.getElementById('termsLink');
+        this.termsModal = document.getElementById('termsModal');
+        this.termsCloseBtn = document.getElementById('termsCloseBtn');
+        this.termsAcceptBtn = document.getElementById('termsAcceptBtn');
 
         this.init();
     }
@@ -54,6 +58,8 @@ class AuthHandler {
                 this.showLoginForm();
             });
         }
+
+        this.setupTermsModal();
     }
 
     showLoginForm() {
@@ -100,6 +106,26 @@ class AuthHandler {
         setTimeout(() => {
             this.registeredBanner.style.display = 'none';
         }, 4000);
+    }
+
+    setupTermsModal() {
+        if (!this.termsLink || !this.termsModal) return;
+
+        const openModal = (e) => {
+            if (e) e.preventDefault();
+            this.termsModal.classList.add('active');
+        };
+
+        const closeModal = () => {
+            this.termsModal.classList.remove('active');
+        };
+
+        this.termsLink.addEventListener('click', openModal);
+        if (this.termsCloseBtn) this.termsCloseBtn.addEventListener('click', closeModal);
+        if (this.termsAcceptBtn) this.termsAcceptBtn.addEventListener('click', closeModal);
+        this.termsModal.addEventListener('click', (e) => {
+            if (e.target === this.termsModal) closeModal();
+        });
     }
 
     hideMessages() {

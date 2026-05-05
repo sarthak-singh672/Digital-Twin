@@ -419,6 +419,19 @@
                     setAvatarImage(user.avatar);
                 }
 
+                if (user.theme) {
+                    localStorage.setItem('dt_theme', user.theme);
+                    const themeSelect = document.getElementById('themeSelect');
+                    if (themeSelect) {
+                        themeSelect.value = user.theme;
+                    }
+                    if (window.ThemeManager) {
+                        window.ThemeManager.setTheme(user.theme);
+                    } else {
+                        document.body.className = 'theme-' + user.theme;
+                    }
+                }
+
                 const statsRes = await fetch(`${BASE_URL}/profile/stats`, { headers });
                 const stats = await statsRes.json();
 
@@ -655,6 +668,7 @@
 
             select.addEventListener('change', async (e) => {
                 const theme = e.target.value;
+                const previousTheme = localStorage.getItem('dt_theme') || 'ocean';
 
                 // 1. Save to localStorage (instant)
                 localStorage.setItem('dt_theme', theme);
@@ -669,7 +683,7 @@
                 // 3. ✅ Save to DATABASE (persists after logout)
                 const token = localStorage.getItem('access_token');
                 try {
-                    await fetch(`${BASE_URL}/users/me`, {
+                    const res = await fetch(`${BASE_URL}/users/me`, {
                         method: 'PUT',
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -677,8 +691,36 @@
                         },
                         body: JSON.stringify({ theme: theme })
                     });
+
+                    if (!res.ok) {
+                        let errMsg = 'Theme update failed. Please try again.';
+                        try {
+                            const err = await res.json();
+                            errMsg = err.detail || errMsg;
+                        } catch (parseErr) {
+                            // Ignore parse errors
+                        }
+                        localStorage.setItem('dt_theme', previousTheme);
+                        if (window.ThemeManager) {
+                            window.ThemeManager.setTheme(previousTheme);
+                        } else {
+                            document.body.className = 'theme-' + previousTheme;
+                        }
+                        select.value = previousTheme;
+                        showToast(errMsg, 'error');
+                        return;
+                    }
                 } catch (err) {
                     console.error('Theme save error:', err);
+                    localStorage.setItem('dt_theme', previousTheme);
+                    if (window.ThemeManager) {
+                        window.ThemeManager.setTheme(previousTheme);
+                    } else {
+                        document.body.className = 'theme-' + previousTheme;
+                    }
+                    select.value = previousTheme;
+                    showToast('Theme update failed. Please try again.', 'error');
+                    return;
                 }
 
                 showToast(`Theme changed to ${select.options[select.selectedIndex].text}`, 'success');
