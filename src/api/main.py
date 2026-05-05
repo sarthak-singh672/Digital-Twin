@@ -186,7 +186,7 @@ def compute_analytics_averages(df: pd.DataFrame, window_days: int = 30) -> dict:
     else:
         daily_window = pd.DataFrame(index=window_index)
 
-    # days_covered counts days with any metric present; per-metric coverage is not tracked to keep metadata lightweight.
+    # days_covered counts days where at least one metric has a value; per-metric coverage is not tracked to keep metadata lightweight.
     days_covered = int(daily_window.notna().any(axis=1).sum()) if not daily_window.empty else 0
     meta = {
         "window": f"{window_days}_days",
