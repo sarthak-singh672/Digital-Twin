@@ -195,7 +195,7 @@ class AuthHandler {
     updateEmailValidity() {
         if (!this.signupEmailInput) return false;
         const email = this.signupEmailInput.value.trim();
-        const isValid = email.length === 0 ? false : this.emailRegex.test(email);
+        const isValid = email.length > 0 && this.emailRegex.test(email);
         if (this.signupEmailError) {
             if (!email) {
                 this.signupEmailError.style.display = 'none';

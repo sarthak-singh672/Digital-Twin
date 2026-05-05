@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, text, cast, Date
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 
 from src.db import database, models
 from src.api import schemas, auth
@@ -290,7 +290,7 @@ def _verify_otp_hash(stored_hash: str, otp: str) -> bool:
 
 
 def _issue_otp(db: Session, user: models.User, enforce_rate_limits: bool = True) -> Optional[str]:
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     active = db.query(models.EmailVerification).filter(
         models.EmailVerification.user_id == user.user_id,
         models.EmailVerification.verified_at.is_(None),
@@ -411,7 +411,7 @@ def verify_email_otp(payload: schemas.EmailOTPVerify, db: Session = Depends(data
     if user.email_verified is True:
         return {"status": "verified"}
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     record = db.query(models.EmailVerification).filter(
         models.EmailVerification.user_id == user.user_id,
         models.EmailVerification.verified_at.is_(None),
