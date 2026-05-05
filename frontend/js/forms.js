@@ -316,7 +316,16 @@ var FormManager = (function() {
 
         var today = getTodayDate();
 
+        const now = new Date();
+        const localTs = now.getFullYear() + '-' +
+            String(now.getMonth() + 1).padStart(2, '0') + '-' +
+            String(now.getDate()).padStart(2, '0') + 'T' +
+            String(now.getHours()).padStart(2, '0') + ':' +
+            String(now.getMinutes()).padStart(2, '0') + ':' +
+            String(now.getSeconds()).padStart(2, '0');
+
         var vitalsData = {
+            ts: localTs,
             hr: parseInt(formData.heartRate),
             bp_sys: parseInt(formData.bpSystolic),
             bp_dia: parseInt(formData.bpDiastolic),

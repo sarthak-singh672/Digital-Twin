@@ -442,7 +442,7 @@
 
                 renderAchievements(stats.achievements || []);
                 renderHealthGoals(stats.health_goals || []);
-                renderPendingGoals(stats.pending_goals || [], stats.no_pending);
+                renderPendingGoals(stats.pending_goals);
             } catch (err) { console.error('Profile fetch error:', err); }
         }
 
@@ -605,22 +605,18 @@
         // =============================================
         // RENDER: Pending Goals
         // =============================================
-        function renderPendingGoals(goals, noPending) {
+        function renderPendingGoals(goals) {
             const container = document.getElementById('pendingGoalsList');
-            if (!goals || goals.length === 0 || noPending) {
-                container.innerHTML = '<p class="no-pending-msg">No pending goal for today.</p>';
+            const pendingGoals = goals || [];
+            if (pendingGoals.length === 0) {
+                container.innerHTML = '<p class="no-pending-msg">No pending goals for today.</p>';
                 return;
             }
-            container.innerHTML = goals.map(goal => {
-                const dateLabel = goal.is_today ? 'Today' : goal.date;
-                const badgeClass = goal.is_today ? 'goal-date-badge today' : 'goal-date-badge';
-                return `
-                    <div class="pending-goal-item" id="goal-item-${goal.id}">
-                        <input type="checkbox" id="goal-check-${goal.id}" onchange="completeGoal(${goal.id})">
-                        <label for="goal-check-${goal.id}">${goal.text}</label>
-                        <span class="${badgeClass}">${dateLabel}</span>
-                    </div>`;
-            }).join('');
+            container.innerHTML = `
+                <ul class="pending-goals-list">
+                    ${pendingGoals.map(goal => `<li>${goal.text}</li>`).join('')}
+                </ul>
+            `;
         }
 
         // =============================================
