@@ -174,6 +174,7 @@ def compute_analytics_averages(df: pd.DataFrame, window_days: int = 30) -> dict:
     all_metrics = [col for fields in metric_map.values() for col in fields.values()]
     available_metrics = [col for col in all_metrics if col in df_window.columns]
 
+    # Use calendar window anchored to today per summary contract.
     end_date = pd.Timestamp.today().normalize()
     start_date = end_date - pd.Timedelta(days=window_days - 1)
     window_index = pd.date_range(start_date, end_date, freq='D')
@@ -186,7 +187,7 @@ def compute_analytics_averages(df: pd.DataFrame, window_days: int = 30) -> dict:
     else:
         daily_window = pd.DataFrame(index=window_index)
 
-    # days_covered counts days where at least one metric has a value; per-metric coverage is not tracked to keep metadata lightweight.
+    # days_covered counts days where at least one metric has a value (not all metrics); per-metric coverage is not tracked to keep metadata lightweight.
     days_covered = int(daily_window.notna().any(axis=1).sum()) if not daily_window.empty else 0
     meta = {
         "window": f"{window_days}_days",

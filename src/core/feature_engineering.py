@@ -33,6 +33,7 @@ def generate_all_features(df: pd.DataFrame, fill_missing: bool = True) -> pd.Dat
     # Ensure daily frequency before time-based rolling windows; resample within observed range so missing dates become NaN.
     df_features = df_features.resample('D').mean()
 
+    # 7D windows include the current day plus six prior days; names are kept for compatibility.
     for col in cols_to_roll:
         if col in df_features.columns:
             df_features[col] = pd.to_numeric(df_features[col], errors='coerce')
