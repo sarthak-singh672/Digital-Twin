@@ -12,6 +12,7 @@ class AuthHandler {
         this.loading = document.getElementById('authLoading');
         this.errorDiv = document.getElementById('authError');
         this.successDiv = document.getElementById('authSuccess');
+        this.registeredBanner = document.getElementById('registeredBanner');
 
         this.init();
     }
@@ -22,6 +23,12 @@ class AuthHandler {
             // STEP 1 FIX: If already logged in, go to Homepage, not Dashboard
             window.location.href = './index.html';
             return;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('registered') === 'true') {
+            this.showLoginForm();
+            this.showRegisteredBanner();
         }
 
         // Form submission handlers
@@ -84,6 +91,15 @@ class AuthHandler {
         this.hideMessages();
         this.successDiv.textContent = message;
         this.successDiv.style.display = 'block';
+    }
+
+    showRegisteredBanner() {
+        if (!this.registeredBanner) return;
+        this.registeredBanner.textContent = '✅ Account created! Please login with your new credentials.';
+        this.registeredBanner.style.display = 'block';
+        setTimeout(() => {
+            this.registeredBanner.style.display = 'none';
+        }, 4000);
     }
 
     hideMessages() {
@@ -196,14 +212,13 @@ class AuthHandler {
             });
 
             this.hideLoading();
-            // UPDATED MESSAGE
-            this.showSuccess('Account created! Let\'s go home...');
+            this.showSuccess('Account created successfully! Please login to continue.');
+            localStorage.removeItem('access_token');
 
-            // Redirect to Homepage after 1.5 seconds
+            // Redirect to Login after 2 seconds
             setTimeout(() => {
-                // STEP 1 FIX: Redirect to index.html
-                window.location.href = './index.html';
-            }, 1500);
+                window.location.href = './login.html?registered=true';
+            }, 2000);
 
         } catch (error) {
             this.hideLoading();

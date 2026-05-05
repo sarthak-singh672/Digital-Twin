@@ -56,6 +56,28 @@
   box-shadow: var(--shadow-lg);
 }
 
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-danger:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-muted {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+.btn-muted:hover:not(:disabled) {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
 .btn-outline {
   background: transparent;
   color: var(--primary-color);
