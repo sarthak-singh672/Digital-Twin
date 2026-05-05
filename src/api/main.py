@@ -151,6 +151,54 @@ def calculate_achievements(db: Session, user_id: int, health_score: float, pendi
     return achievements
 
 
+def compute_analytics_averages(df: pd.DataFrame, window_days: int = 30) -> dict:
+    metric_map = {
+        "vitals": {"avg_heart_rate": "hr"},
+        "lifestyle": {"avg_sleep": "sleep_hrs", "avg_stress": "stress_score"},
+        "academic": {"avg_study_hours": "study_hrs"}
+    }
+    results = {section: {key: None for key in metrics} for section, metrics in metric_map.items()}
+    meta = {"window": f"{window_days}_days", "days_covered": 0, "missing_days": window_days}
+
+    if df is None or df.empty or 'date' not in df.columns:
+        results["meta"] = meta
+        return results
+
+    df_window = df.copy()
+    df_window['date'] = pd.to_datetime(df_window['date']).dt.normalize()
+    df_window = df_window.set_index('date').sort_index()
+
+    all_metrics = [col for fields in metric_map.values() for col in fields.values()]
+    available_metrics = [col for col in all_metrics if col in df_window.columns]
+
+    end_date = pd.Timestamp.today().normalize()
+    start_date = end_date - pd.Timedelta(days=window_days - 1)
+    window_index = pd.date_range(start_date, end_date, freq='D')
+
+    if available_metrics:
+        df_window[available_metrics] = df_window[available_metrics].apply(pd.to_numeric, errors='coerce')
+        daily = df_window[available_metrics].resample('D').mean()
+        daily_window = daily.reindex(window_index)
+    else:
+        daily_window = pd.DataFrame(index=window_index)
+
+    days_covered = int(daily_window.notna().any(axis=1).sum()) if not daily_window.empty else 0
+    meta = {
+        "window": f"{window_days}_days",
+        "days_covered": days_covered,
+        "missing_days": int(window_days - days_covered)
+    }
+
+    for section, fields in metric_map.items():
+        for output_key, source_col in fields.items():
+            if source_col in daily_window.columns:
+                avg = daily_window[source_col].mean(skipna=True)
+                results[section][output_key] = None if pd.isna(avg) else float(avg)
+
+    results["meta"] = meta
+    return results
+
+
 # =============================================
 # BACKGROUND ANALYSIS
 # =============================================
@@ -383,12 +431,16 @@ def get_analytics_summary(db: Session = Depends(database.get_db), user=Depends(a
     active_alerts = db.query(models.Alert).filter(models.Alert.user_id == user.user_id,
                                                   models.Alert.resolved_flag == False).all()
 
-    df = get_user_data(db, user.user_id)
+    df = get_user_data(db, user.user_id, fill_missing=False)
+    averages = compute_analytics_averages(df)
     current_wellness = 5.0
     chart_data = []
     if df is not None and not df.empty:
-        df_features = generate_all_features(df)
-        current_wellness = float(df_features.iloc[-1].get('WellnessScore', 5.0))
+        df_features = generate_all_features(df, fill_missing=False)
+        if df_features is not None and not df_features.empty and 'WellnessScore' in df_features.columns:
+            wellness_series = df_features['WellnessScore'].dropna()
+            if not wellness_series.empty:
+                current_wellness = float(wellness_series.iloc[-1])
         chart_data = df_features.replace({np.nan: None}).to_dict(orient='records')
 
     ai_risk = float(latest.risk_score if latest else 0.2)
@@ -404,7 +456,8 @@ def get_analytics_summary(db: Session = Depends(database.get_db), user=Depends(a
         "health_score": final_health_score,
         "risk_label": display_label,
         "chart_data": chart_data,
-        "recommendations": parsed_recs
+        "recommendations": parsed_recs,
+        **averages
     }
 
 
