@@ -183,7 +183,7 @@ def compute_analytics_averages(df: pd.DataFrame, window_days: int = 30) -> dict:
     else:
         daily_window = pd.DataFrame(index=window_index)
 
-    # days_covered counts days with at least one metric present within the window (not per-metric coverage).
+    # days_covered counts days with at least one metric present (aggregate across metrics, not per-metric coverage).
     days_covered = int(daily_window.notna().any(axis=1).sum()) if not daily_window.empty else 0
     meta = {
         "window": f"{window_days}_days",
@@ -195,7 +195,7 @@ def compute_analytics_averages(df: pd.DataFrame, window_days: int = 30) -> dict:
         for output_key, source_col in fields.items():
             if source_col in daily_window.columns:
                 # Averages are computed from available days only; return null when no data exists.
-                avg = daily_window[source_col].mean(skipna=True)
+                avg = daily_window[source_col].mean()
                 results[section][output_key] = None if pd.isna(avg) else float(avg)
 
     results["meta"] = meta
