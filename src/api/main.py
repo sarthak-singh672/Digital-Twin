@@ -175,6 +175,7 @@ def compute_analytics_averages(df: pd.DataFrame, window_days: int = 30) -> dict:
     start_date = end_date - pd.Timedelta(days=window_days - 1)
     window_index = pd.date_range(start_date, end_date, freq='D')
 
+    # Resample to calendar days and reindex the full window so missing days are explicit.
     if available_metrics:
         df_window[available_metrics] = df_window[available_metrics].apply(pd.to_numeric, errors='coerce')
         daily = df_window[available_metrics].resample('D').mean()
