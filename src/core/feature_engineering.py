@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-def generate_all_features(df: pd.DataFrame) -> pd.DataFrame:
+def generate_all_features(df: pd.DataFrame, fill_missing: bool = True) -> pd.DataFrame:
     """
     Main wrapper updated with REAL DB NAMES.
     Fixes applied: Deduplication for Date axis & Scaled formulas for 0-10 Graphs.
@@ -26,13 +26,19 @@ def generate_all_features(df: pd.DataFrame) -> pd.DataFrame:
     # 2. Rolling Features (7-day window)
     cols_to_roll = ['hr', 'temp', 'sleep_hrs', 'stress_score', 'study_hrs', 'diet_score', 'activity_hrs']
 
-    df_features = df_features.set_index('date')
+    if 'date' not in df_features.columns:
+        return df_features
 
+    df_features = df_features.set_index('date').sort_index()
+    # Ensure daily frequency before time-based rolling windows; resample within observed range so missing dates become NaN.
+    df_features = df_features.resample('D').mean()
+
+    # 7D windows include the current day plus six prior days; names are kept for compatibility.
     for col in cols_to_roll:
         if col in df_features.columns:
             df_features[col] = pd.to_numeric(df_features[col], errors='coerce')
-            df_features[f'{col}_mean_7d'] = df_features[col].rolling(window=7, min_periods=1).mean()
-            df_features[f'{col}_std_7d'] = df_features[col].rolling(window=7, min_periods=1).std().fillna(0)
+            df_features[f'{col}_mean_7d'] = df_features[col].rolling('7D', min_periods=1).mean()
+            df_features[f'{col}_std_7d'] = df_features[col].rolling('7D', min_periods=1).std().fillna(0)
 
     # 3. Composite Indices
     stress_mean = df_features.get('stress_score_mean_7d', 0)
@@ -75,4 +81,7 @@ def generate_all_features(df: pd.DataFrame) -> pd.DataFrame:
         if col not in df_features.columns:
             df_features[col] = 0.0
 
-    return df_features.reset_index().ffill().bfill()
+    df_features = df_features.reset_index()
+    if fill_missing:
+        df_features = df_features.ffill().bfill()
+    return df_features

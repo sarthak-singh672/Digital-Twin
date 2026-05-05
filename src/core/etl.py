@@ -8,7 +8,7 @@ in ETL.
 """
 
 
-def get_user_data(db: Session, user_id: int) -> pd.DataFrame:
+def get_user_data(db: Session, user_id: int, fill_missing: bool = True) -> pd.DataFrame:
     """
     Fetches all data for a single user and combines it into one DataFrame.
     """
@@ -69,7 +69,8 @@ def get_user_data(db: Session, user_id: int) -> pd.DataFrame:
     df_base = df_base.sort_values(by='date')
 
     # --- Data Cleaning (as mentioned in paper) ---
-    df_base = df_base.ffill()
+    if fill_missing:
+        df_base = df_base.ffill()
 
     if 'temp' in df_base.columns:
         df_base['temp'] = df_base['temp'].clip(34, 42)  # Renamed from 'temp_mean'
