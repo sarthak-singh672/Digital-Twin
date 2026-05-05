@@ -288,72 +288,6 @@ def submit_academic(data: schemas.AcademicData, bg: BackgroundTasks, db: Session
     return {"status": "success"}
 
 
-@router.post("/admin/seed")
-def run_seed(db: Session = Depends(database.get_db), user=Depends(auth.get_current_user)):
-    from src.db import models
-    import random
-
-    USER_IDS = [1, 2]
-    if user.user_id not in USER_IDS:
-        raise HTTPException(status_code=403, detail="Not authorized")
-
-    DAYS = 30
-    today = datetime.now()
-
-    for user_id in USER_IDS:
-        for i in range(1, DAYS + 1):
-            record_date = (today - timedelta(days=i)).date()
-            record_ts = today - timedelta(days=i)
-
-            existing_vitals = db.query(models.Vitals).filter(
-                models.Vitals.user_id == user_id,
-                func.date(models.Vitals.ts) == record_date
-            ).first()
-            if not existing_vitals:
-                db.add(models.Vitals(
-                    user_id=user_id, ts=record_ts,
-                    hr=random.randint(70, 85),
-                    bp_sys=random.randint(115, 125),
-                    bp_dia=random.randint(75, 80),
-                    spo2=random.uniform(97, 99),
-                    temp=random.uniform(98.0, 98.6)
-                ))
-
-            if not db.query(models.Lifestyle).filter(
-                models.Lifestyle.user_id == user_id,
-                models.Lifestyle.date == record_date
-            ).first():
-                db.add(models.Lifestyle(
-                    user_id=user_id, date=record_date,
-                    sleep_hrs=random.uniform(7.0, 8.5),
-                    water_glasses=random.randint(8, 12),
-                    diet_score=random.randint(3, 5),
-                    stress_score=random.randint(2, 5)
-                ))
-
-            if not db.query(models.Activity).filter(
-                models.Activity.user_id == user_id,
-                models.Activity.date == record_date
-            ).first():
-                db.add(models.Activity(
-                    user_id=user_id, date=record_date,
-                    steps=random.randint(5000, 10000),
-                    exercise_mins=random.randint(20, 45)
-                ))
-
-            if not db.query(models.Academic).filter(
-                models.Academic.user_id == user_id,
-                models.Academic.date == record_date
-            ).first():
-                db.add(models.Academic(
-                    user_id=user_id, date=record_date,
-                    study_hrs=random.uniform(3, 6),
-                    attendance_pct=random.uniform(85, 100),
-                    assignments_on_time=random.randint(1, 5)
-                ))
-
-    db.commit()
-    return {"status": "success", "message": "Seeded 30 days for users 1 and 2"}
 
 
 # =============================================
@@ -504,6 +438,54 @@ if os.path.exists("frontend"):
 @app.get("/", include_in_schema=False)
 async def root():
     return RedirectResponse(url="/frontend/login.html")
+
+
+@router.post("/admin/seed")
+def run_seed(db: Session = Depends(database.get_db)):
+    import random
+    from datetime import datetime, timedelta
+    USER_IDS = [1, 2]
+    today = datetime.now()
+    for user_id in USER_IDS:
+        for i in range(1, 31):
+            d = (today - timedelta(days=i)).date()
+            ts = today - timedelta(days=i)
+            if not db.query(models.Vitals).filter(
+                models.Vitals.user_id == user_id,
+                func.date(models.Vitals.ts) == d
+            ).first():
+                db.add(models.Vitals(user_id=user_id, ts=ts,
+                    hr=random.randint(70,85),
+                    bp_sys=random.randint(115,125),
+                    bp_dia=random.randint(75,80),
+                    spo2=round(random.uniform(97,99),1),
+                    temp=round(random.uniform(98.0,98.6),1)))
+            if not db.query(models.Lifestyle).filter(
+                models.Lifestyle.user_id == user_id,
+                models.Lifestyle.date == d
+            ).first():
+                db.add(models.Lifestyle(user_id=user_id, date=d,
+                    sleep_hrs=round(random.uniform(7.0,8.5),1),
+                    water_glasses=random.randint(8,12),
+                    diet_score=random.randint(3,5),
+                    stress_score=random.randint(2,5)))
+            if not db.query(models.Activity).filter(
+                models.Activity.user_id == user_id,
+                models.Activity.date == d
+            ).first():
+                db.add(models.Activity(user_id=user_id, date=d,
+                    steps=random.randint(5000,10000),
+                    exercise_mins=random.randint(20,45)))
+            if not db.query(models.Academic).filter(
+                models.Academic.user_id == user_id,
+                models.Academic.date == d
+            ).first():
+                db.add(models.Academic(user_id=user_id, date=d,
+                    study_hrs=round(random.uniform(3,6),1),
+                    attendance_pct=round(random.uniform(85,100),1),
+                    assignments_on_time=random.randint(1,5)))
+        db.commit()
+    return {"status": "success", "message": "Seeded 30 days for users 1 and 2"}
 
 
 app.include_router(router)
