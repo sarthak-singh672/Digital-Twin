@@ -43,6 +43,7 @@ USER_PROFILES = {
 }
 
 DAYS_TO_SEED = 30
+SEED_MULTIPLIER = 1000
 
 
 def clamp(value, min_value, max_value):
@@ -72,7 +73,7 @@ def generate_fake_data():
 
         for user_id, profile in USER_PROFILES.items():
             print(f"🚀 Generating {DAYS_TO_SEED} days of data for User ID: {user_id} ({profile['name']})...")
-            rng = random.Random(user_id * 1000)
+            rng = random.Random(user_id * SEED_MULTIPLIER)
 
             existing_vitals_dates = get_existing_dates(
                 db.query(func.date(models.Vitals.ts)).filter(models.Vitals.user_id == user_id).all()
