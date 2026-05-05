@@ -288,6 +288,72 @@ def submit_academic(data: schemas.AcademicData, bg: BackgroundTasks, db: Session
     return {"status": "success"}
 
 
+@router.post("/admin/seed")
+def run_seed(db: Session = Depends(database.get_db)):
+    from src.db import models
+    import random
+
+    USER_IDS = [1, 2]
+    DAYS = 30
+    today = datetime.now()
+
+    for user_id in USER_IDS:
+        for i in range(1, DAYS + 1):
+            record_date = (today - timedelta(days=i)).date()
+            record_ts = today - timedelta(days=i)
+
+            existing_vitals = db.query(models.Vitals).filter(
+                models.Vitals.user_id == user_id,
+                func.date(models.Vitals.ts) == record_date
+            ).first()
+            if not existing_vitals:
+                db.add(models.Vitals(
+                    user_id=user_id, ts=record_ts,
+                    hr=random.randint(70, 85),
+                    bp_sys=random.randint(115, 125),
+                    bp_dia=random.randint(75, 80),
+                    spo2=random.uniform(97, 99),
+                    temp=random.uniform(98.0, 98.6)
+                ))
+
+            if not db.query(models.Lifestyle).filter(
+                models.Lifestyle.user_id == user_id,
+                models.Lifestyle.date == record_date
+            ).first():
+                db.add(models.Lifestyle(
+                    user_id=user_id, date=record_date,
+                    sleep_hrs=random.uniform(7.0, 8.5),
+                    water_glasses=random.randint(8, 12),
+                    diet_score=random.randint(3, 5),
+                    stress_score=random.randint(2, 5)
+                ))
+
+            if not db.query(models.Activity).filter(
+                models.Activity.user_id == user_id,
+                models.Activity.date == record_date
+            ).first():
+                db.add(models.Activity(
+                    user_id=user_id, date=record_date,
+                    steps=random.randint(5000, 10000),
+                    exercise_mins=random.randint(20, 45)
+                ))
+
+            if not db.query(models.Academic).filter(
+                models.Academic.user_id == user_id,
+                models.Academic.date == record_date
+            ).first():
+                db.add(models.Academic(
+                    user_id=user_id, date=record_date,
+                    study_hrs=random.uniform(3, 6),
+                    attendance_pct=random.uniform(85, 100),
+                    assignments_on_time=random.randint(1, 5)
+                ))
+
+        db.commit()
+
+    return {"status": "success", "message": "Seeded 30 days for users 1 and 2"}
+
+
 # =============================================
 # GOALS ENDPOINTS
 # =============================================

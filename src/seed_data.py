@@ -1,11 +1,25 @@
+import os
 import random
 from datetime import datetime, timedelta
 
-from sqlalchemy import func
+from sqlalchemy import create_engine, func
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.orm import sessionmaker
 
-from src.db.database import SessionLocal
 from src.db import models
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set.")
+
+if "sslmode=" not in DATABASE_URL:
+    separator = "&" if "?" in DATABASE_URL else "?"
+    DATABASE_URL = f"{DATABASE_URL}{separator}sslmode=require"
+
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+USER_IDS = [1, 2]
 
 USER_PROFILES = {
     1: {
@@ -71,7 +85,8 @@ def generate_fake_data():
     try:
         today_date = datetime.now().date()
 
-        for user_id, profile in USER_PROFILES.items():
+        for user_id in USER_IDS:
+            profile = USER_PROFILES[user_id]
             print(f"🚀 Generating {DAYS_TO_SEED} days of data for User ID: {user_id} ({profile['name']})...")
             rng = random.Random(user_id * SEED_MULTIPLIER)
 
