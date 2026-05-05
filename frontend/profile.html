@@ -666,6 +666,17 @@
             const saved = localStorage.getItem('dt_theme') || 'ocean';
             select.value = saved;
 
+            const rollbackTheme = (previousTheme, message) => {
+                localStorage.setItem('dt_theme', previousTheme);
+                if (window.ThemeManager) {
+                    window.ThemeManager.setTheme(previousTheme);
+                } else {
+                    document.body.className = 'theme-' + previousTheme;
+                }
+                select.value = previousTheme;
+                showToast(message, 'error');
+            };
+
             select.addEventListener('change', async (e) => {
                 const theme = e.target.value;
                 const previousTheme = localStorage.getItem('dt_theme') || 'ocean';
@@ -700,26 +711,12 @@
                         } catch (parseErr) {
                             // Ignore parse errors
                         }
-                        localStorage.setItem('dt_theme', previousTheme);
-                        if (window.ThemeManager) {
-                            window.ThemeManager.setTheme(previousTheme);
-                        } else {
-                            document.body.className = 'theme-' + previousTheme;
-                        }
-                        select.value = previousTheme;
-                        showToast(errMsg, 'error');
+                        rollbackTheme(previousTheme, errMsg);
                         return;
                     }
                 } catch (err) {
                     console.error('Theme save error:', err);
-                    localStorage.setItem('dt_theme', previousTheme);
-                    if (window.ThemeManager) {
-                        window.ThemeManager.setTheme(previousTheme);
-                    } else {
-                        document.body.className = 'theme-' + previousTheme;
-                    }
-                    select.value = previousTheme;
-                    showToast('Theme update failed. Please try again.', 'error');
+                    rollbackTheme(previousTheme, 'Theme update failed. Please try again.');
                     return;
                 }
 
