@@ -30,7 +30,7 @@ def generate_all_features(df: pd.DataFrame, fill_missing: bool = True) -> pd.Dat
         return df_features
 
     df_features = df_features.set_index('date').sort_index()
-    # Ensure daily frequency before time-based rolling windows; aggregate multiple readings per day.
+    # Ensure daily frequency before time-based rolling windows; mean aggregation keeps averages aligned to metrics.
     df_features = df_features.resample('D').mean()
 
     for col in cols_to_roll:
