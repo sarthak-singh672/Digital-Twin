@@ -278,11 +278,11 @@ def run_full_analysis(db: Session, user: models.User):
 
 # --- Email Verification Helpers ---
 def _generate_otp() -> str:
-    return f"{secrets.randbelow(10**6):06d}"
+    return str(secrets.randbelow(900000) + 100000)
 
 
 def _hash_otp(otp: str) -> str:
-    return hashlib.sha256(f"{otp}{OTP_SECRET}".encode()).hexdigest()
+    return hmac.new(OTP_SECRET.encode(), otp.encode(), hashlib.sha256).hexdigest()
 
 
 def _verify_otp_hash(stored_hash: str, otp: str) -> bool:
@@ -400,7 +400,7 @@ def send_email_otp(payload: schemas.EmailOnly, db: Session = Depends(database.ge
         raise HTTPException(status_code=500, detail="Failed to send OTP email")
 
     db.commit()
-    return {"status": "sent"}
+    return {"status": "ok"}
 
 
 @router.post("/auth/email/verify-otp")
@@ -431,7 +431,6 @@ def verify_email_otp(payload: schemas.EmailOTPVerify, db: Session = Depends(data
         raise HTTPException(status_code=400, detail="Incorrect OTP")
 
     record.verified_at = now
-    record.expires_at = now
     user.email_verified = True
     user.email_verified_at = now
     db.commit()

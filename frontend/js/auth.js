@@ -27,6 +27,7 @@ class AuthHandler {
         this.signupEmailInput = document.getElementById('signupEmail');
         this.signupEmailError = document.getElementById('signupEmailError');
         this.signupSubmitBtn = document.getElementById('signupSubmitBtn');
+        this.emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         this.pendingEmail = localStorage.getItem('pending_verification_email');
         this.otpCooldownTimer = null;
 
@@ -194,8 +195,7 @@ class AuthHandler {
     updateEmailValidity() {
         if (!this.signupEmailInput) return false;
         const email = this.signupEmailInput.value.trim();
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const isValid = email.length === 0 ? false : emailRegex.test(email);
+        const isValid = email.length === 0 ? false : this.emailRegex.test(email);
         if (this.signupEmailError) {
             if (!email) {
                 this.signupEmailError.style.display = 'none';
@@ -322,8 +322,7 @@ class AuthHandler {
             console.error('Login error:', error);
             const message = error.message || 'Login failed. Please check your credentials.';
             if (message.includes('Email not verified')) {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (emailRegex.test(username)) {
+                if (this.emailRegex.test(username)) {
                     this.showOtpForm(username);
                     try {
                         await window.DigitalTwinAPI.sendOtp(username);
@@ -370,8 +369,7 @@ class AuthHandler {
         }
 
         // Email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
+        if (!this.emailRegex.test(email)) {
             this.showError('Please enter a valid email address');
             return;
         }
