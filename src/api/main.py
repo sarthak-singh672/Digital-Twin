@@ -289,11 +289,14 @@ def submit_academic(data: schemas.AcademicData, bg: BackgroundTasks, db: Session
 
 
 @router.post("/admin/seed")
-def run_seed(db: Session = Depends(database.get_db)):
+def run_seed(db: Session = Depends(database.get_db), user=Depends(auth.get_current_user)):
     from src.db import models
     import random
 
     USER_IDS = [1, 2]
+    if user.user_id not in USER_IDS:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
     DAYS = 30
     today = datetime.now()
 
@@ -349,8 +352,7 @@ def run_seed(db: Session = Depends(database.get_db)):
                     assignments_on_time=random.randint(1, 5)
                 ))
 
-        db.commit()
-
+    db.commit()
     return {"status": "success", "message": "Seeded 30 days for users 1 and 2"}
 
 
