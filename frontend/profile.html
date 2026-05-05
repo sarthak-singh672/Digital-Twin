@@ -62,6 +62,8 @@
         .setting-info i { font-size: 1.2rem; color: var(--primary-color); width: 24px; text-align: center; }
         .setting-info div h4 { margin: 0; font-size: 0.95rem; }
         .setting-info div p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
+        .profile-actions { display: flex; gap: var(--spacing-md); align-items: center; flex-wrap: wrap; }
+        .profile-actions .btn { justify-content: center; }
 
         /* Avatar styles */
         .avatar-circle { position: relative; cursor: pointer; }
@@ -107,6 +109,10 @@
         @media (max-width: 1024px) {
             .profile-three-col { grid-template-columns: 1fr; }
             .profile-stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .profile-actions { flex-direction: column; }
+            .profile-actions .btn { width: 100%; }
         }
     </style>
 </head>
@@ -173,7 +179,10 @@
                             <div class="form-group"><label>First Name</label><input type="text" id="firstName" class="form-control"></div>
                             <div class="form-group"><label>Last Name</label><input type="text" id="lastName" class="form-control"></div>
                             <div class="form-group"><label>Email</label><input type="email" id="email" class="form-control"></div>
-                            <button type="submit" class="btn btn-primary" id="updateBtn">Update Profile</button>
+                            <div class="profile-actions">
+                                <button type="submit" class="btn btn-primary" id="updateBtn">Update Profile</button>
+                                <button type="button" class="btn btn-danger" id="logoutBtn">Logout</button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -247,6 +256,26 @@
         </div>
     </div>
 
+    <div class="modal" id="logoutModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirm Logout</h3>
+            </div>
+            <div class="modal-body">
+                <p>Please enter your password to confirm logout</p>
+                <div class="form-group">
+                    <label for="logoutPassword" class="form-label">Password</label>
+                    <input type="password" id="logoutPassword" class="form-control" placeholder="Enter your password">
+                    <span id="logoutError" class="form-error" style="display: none;"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-muted" id="logoutCancelBtn">Cancel</button>
+                <button type="button" class="btn btn-danger" id="logoutConfirmBtn">Logout</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="./js/api-config.js"></script>
     <script src="./js/api.js"></script>
@@ -264,6 +293,7 @@
             setupThemeSelector();
             setupExportButton();
             setupAvatarUpload();
+            setupLogoutModal();
         });
 
         // =============================================
@@ -283,6 +313,90 @@
             t.textContent = msg;
             t.className = `profile-toast ${type} show`;
             setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // =============================================
+        // LOGOUT MODAL
+        // =============================================
+        function setupLogoutModal() {
+            const logoutBtn = document.getElementById('logoutBtn');
+            const modal = document.getElementById('logoutModal');
+            const cancelBtn = document.getElementById('logoutCancelBtn');
+            const confirmBtn = document.getElementById('logoutConfirmBtn');
+            const passwordInput = document.getElementById('logoutPassword');
+            const errorEl = document.getElementById('logoutError');
+
+            if (!logoutBtn || !modal || !cancelBtn || !confirmBtn || !passwordInput || !errorEl) return;
+
+            const clearError = () => {
+                errorEl.textContent = '';
+                errorEl.style.display = 'none';
+            };
+
+            const openModal = () => {
+                clearError();
+                passwordInput.value = '';
+                modal.classList.add('active');
+                passwordInput.focus();
+            };
+
+            const closeModal = () => {
+                modal.classList.remove('active');
+                clearError();
+                passwordInput.value = '';
+            };
+
+            logoutBtn.addEventListener('click', openModal);
+            cancelBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+
+            confirmBtn.addEventListener('click', async () => {
+                const email = document.getElementById('email').value.trim();
+                const password = passwordInput.value;
+
+                if (!password) {
+                    errorEl.textContent = 'Please enter your password.';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+
+                clearError();
+                confirmBtn.disabled = true;
+                const originalText = confirmBtn.innerHTML;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+
+                try {
+                    const params = new URLSearchParams();
+                    params.append('username', email);
+                    params.append('password', password);
+
+                    const response = await fetch(`${BASE_URL}/auth/token`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: params
+                    });
+
+                    if (response.ok) {
+                        localStorage.removeItem('access_token');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+
+                    const authErrorStatuses = [400, 401, 422];
+                    errorEl.textContent = authErrorStatuses.includes(response.status)
+                        ? 'Incorrect password. Please try again.'
+                        : 'Unable to confirm logout. Please try again.';
+                    errorEl.style.display = 'block';
+                } catch (err) {
+                    errorEl.textContent = 'Unable to confirm logout. Please try again.';
+                    errorEl.style.display = 'block';
+                } finally {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = originalText;
+                }
+            });
         }
 
         // =============================================

@@ -204,6 +204,12 @@
     display: none;
 }
 
+.auth-banner {
+    margin-top: 0;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
 .alert-error {
     background: #fee2e2;
     color: #991b1b;
