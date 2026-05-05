@@ -614,7 +614,12 @@
             }
             container.innerHTML = `
                 <ul class="pending-goals-list">
-                    ${pendingGoals.map(goal => `<li>${goal.text}</li>`).join('')}
+                    ${pendingGoals.map(goal => `
+                        <li class="pending-goal-item" id="goal-item-${goal.id}">
+                            <input type="checkbox" id="goal-check-${goal.id}" onchange="completeGoal(${goal.id})">
+                            <label for="goal-check-${goal.id}">${goal.text}</label>
+                        </li>
+                    `).join('')}
                 </ul>
             `;
         }
