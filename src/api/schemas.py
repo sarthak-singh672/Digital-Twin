@@ -42,6 +42,15 @@ class UserUpdate(BaseModel):
     theme: Optional[str] = None
 
 
+class EmailOnly(BaseModel):
+    email: EmailStr
+
+
+class EmailOTPVerify(BaseModel):
+    email: EmailStr
+    otp: str
+
+
 # --- Data Entry Models ---
 class LifestyleData(BaseModel):
     date: date

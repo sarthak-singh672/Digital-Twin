@@ -21,6 +21,8 @@ class User(Base):
     # ✅ NEW: Avatar stored as base64 data URI
     avatar = Column(Text, nullable=True)
     theme = Column(String(50), default='ocean', nullable=True)
+    email_verified = Column(Boolean, default=True, nullable=True)
+    email_verified_at = Column(DateTime(timezone=True), nullable=True)
 
     vitals = relationship("Vitals", back_populates="user")
     lifestyles = relationship("Lifestyle", back_populates="user")
@@ -30,6 +32,8 @@ class User(Base):
     alerts = relationship("Alert", back_populates="user")
     recommendations = relationship("Recommendation", back_populates="user")
     goals = relationship("Goal", back_populates="user")
+
+    email_verifications = relationship("EmailVerification", back_populates="user")
 
 
 class Vitals(Base):
@@ -139,3 +143,20 @@ class Goal(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="goals")
+
+
+class EmailVerification(Base):
+    __tablename__ = "email_verifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    email = Column(String(100), index=True, nullable=False)
+    otp_hash = Column(String(128), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    attempts_count = Column(Integer, default=0, nullable=False)
+    resend_count = Column(Integer, default=0, nullable=False)
+    last_sent_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    verified_at = Column(DateTime(timezone=True), nullable=True)
+
+    user = relationship("User", back_populates="email_verifications")

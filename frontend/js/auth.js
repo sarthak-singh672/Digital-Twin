@@ -17,6 +17,18 @@ class AuthHandler {
         this.termsModal = document.getElementById('termsModal');
         this.termsCloseBtn = document.getElementById('termsCloseBtn');
         this.termsAcceptBtn = document.getElementById('termsAcceptBtn');
+        this.otpContainer = document.getElementById('otpForm');
+        this.otpForm = document.getElementById('otpFormElement');
+        this.otpCodeInput = document.getElementById('otpCode');
+        this.otpEmailDisplay = document.getElementById('otpEmailDisplay');
+        this.resendOtpBtn = document.getElementById('resendOtpBtn');
+        this.otpCooldownText = document.getElementById('otpCooldownText');
+        this.otpBackToSignup = document.getElementById('otpBackToSignup');
+        this.signupEmailInput = document.getElementById('signupEmail');
+        this.signupEmailError = document.getElementById('signupEmailError');
+        this.signupSubmitBtn = document.getElementById('signupSubmitBtn');
+        this.pendingEmail = localStorage.getItem('pending_verification_email');
+        this.otpCooldownTimer = null;
 
         this.init();
     }
@@ -35,6 +47,10 @@ class AuthHandler {
             this.showRegisteredBanner();
         }
 
+        if (this.pendingEmail) {
+            this.showOtpForm(this.pendingEmail);
+        }
+
         // Form submission handlers
         if (this.loginForm) {
             this.loginForm.addEventListener('submit', (e) => this.handleLogin(e));
@@ -42,6 +58,27 @@ class AuthHandler {
 
         if (this.signupForm) {
             this.signupForm.addEventListener('submit', (e) => this.handleSignup(e));
+        }
+
+        if (this.otpForm) {
+            this.otpForm.addEventListener('submit', (e) => this.handleOtpVerify(e));
+        }
+
+        if (this.resendOtpBtn) {
+            this.resendOtpBtn.addEventListener('click', () => this.handleResendOtp());
+        }
+
+        if (this.otpBackToSignup) {
+            this.otpBackToSignup.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.clearPendingEmail();
+                this.showSignupForm();
+            });
+        }
+
+        if (this.signupEmailInput) {
+            this.signupEmailInput.addEventListener('input', () => this.updateEmailValidity());
+            this.updateEmailValidity();
         }
 
         // Toggle between login and signup
@@ -64,14 +101,29 @@ class AuthHandler {
 
     showLoginForm() {
         this.signupContainer.classList.remove('active');
+        if (this.otpContainer) this.otpContainer.classList.remove('active');
         this.loginContainer.classList.add('active');
         this.hideMessages();
     }
 
     showSignupForm() {
         this.loginContainer.classList.remove('active');
+        if (this.otpContainer) this.otpContainer.classList.remove('active');
         this.signupContainer.classList.add('active');
         this.hideMessages();
+    }
+
+    showOtpForm(email) {
+        if (!this.otpContainer) return;
+        this.loginContainer.classList.remove('active');
+        this.signupContainer.classList.remove('active');
+        this.otpContainer.classList.add('active');
+        this.hideMessages();
+        this.pendingEmail = email;
+        localStorage.setItem('pending_verification_email', email);
+        if (this.otpEmailDisplay) {
+            this.otpEmailDisplay.textContent = email;
+        }
     }
 
     showLoading() {
@@ -133,6 +185,93 @@ class AuthHandler {
         this.successDiv.style.display = 'none';
     }
 
+    clearPendingEmail() {
+        this.pendingEmail = null;
+        localStorage.removeItem('pending_verification_email');
+        if (this.otpCodeInput) this.otpCodeInput.value = '';
+    }
+
+    updateEmailValidity() {
+        if (!this.signupEmailInput) return false;
+        const email = this.signupEmailInput.value.trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const isValid = email.length === 0 ? false : emailRegex.test(email);
+        if (this.signupEmailError) {
+            if (!email) {
+                this.signupEmailError.style.display = 'none';
+            } else if (!isValid) {
+                this.signupEmailError.textContent = 'Please enter a valid email address';
+                this.signupEmailError.style.display = 'block';
+            } else {
+                this.signupEmailError.style.display = 'none';
+            }
+        }
+        if (this.signupSubmitBtn) {
+            this.signupSubmitBtn.disabled = !isValid;
+        }
+        return isValid;
+    }
+
+    startOtpCooldown(seconds = 60) {
+        if (!this.resendOtpBtn || !this.otpCooldownText) return;
+        let remaining = seconds;
+        this.resendOtpBtn.disabled = true;
+        this.otpCooldownText.textContent = `Resend available in ${remaining}s`;
+        if (this.otpCooldownTimer) clearInterval(this.otpCooldownTimer);
+        this.otpCooldownTimer = setInterval(() => {
+            remaining -= 1;
+            if (remaining <= 0) {
+                clearInterval(this.otpCooldownTimer);
+                this.otpCooldownTimer = null;
+                this.resendOtpBtn.disabled = false;
+                this.otpCooldownText.textContent = '';
+            } else {
+                this.otpCooldownText.textContent = `Resend available in ${remaining}s`;
+            }
+        }, 1000);
+    }
+
+    async handleResendOtp() {
+        if (!this.pendingEmail) {
+            this.showError('Please enter your email again.');
+            return;
+        }
+        this.showLoading();
+        try {
+            await window.DigitalTwinAPI.sendOtp(this.pendingEmail);
+            this.hideLoading();
+            this.showSuccess('If your email exists, a new code has been sent.');
+            this.startOtpCooldown(60);
+        } catch (error) {
+            this.hideLoading();
+            this.showError(error.message || 'Could not resend code.');
+        }
+    }
+
+    async handleOtpVerify(e) {
+        e.preventDefault();
+        if (!this.pendingEmail) {
+            this.showError('Please enter your email again.');
+            return;
+        }
+        const otp = this.otpCodeInput ? this.otpCodeInput.value.trim() : '';
+        if (!otp) {
+            this.showError('Please enter the verification code.');
+            return;
+        }
+        this.showLoading();
+        try {
+            await window.DigitalTwinAPI.verifyOtp(this.pendingEmail, otp);
+            this.hideLoading();
+            this.showSuccess('Email verified! Please log in.');
+            this.clearPendingEmail();
+            this.showLoginForm();
+        } catch (error) {
+            this.hideLoading();
+            this.showError(error.message || 'Verification failed. Please try again.');
+        }
+    }
+
     async handleLogin(e) {
         e.preventDefault();
 
@@ -181,7 +320,20 @@ class AuthHandler {
         } catch (error) {
             this.hideLoading();
             console.error('Login error:', error);
-            this.showError(error.message || 'Login failed. Please check your credentials.');
+            const message = error.message || 'Login failed. Please check your credentials.';
+            if (message.includes('Email not verified')) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (emailRegex.test(username)) {
+                    this.showOtpForm(username);
+                    try {
+                        await window.DigitalTwinAPI.sendOtp(username);
+                        this.startOtpCooldown(60);
+                    } catch (otpError) {
+                        console.error('OTP send error:', otpError);
+                    }
+                }
+            }
+            this.showError(message);
         }
     }
 
@@ -228,7 +380,7 @@ class AuthHandler {
         this.hideMessages();
 
         try {
-            const response = await window.DigitalTwinAPI.signup({
+            await window.DigitalTwinAPI.signup({
                 username: username,
                 email: email,
                 password: password,
@@ -238,13 +390,9 @@ class AuthHandler {
             });
 
             this.hideLoading();
-            this.showSuccess('Account created successfully! Please login to continue.');
-            localStorage.removeItem('access_token');
-
-            // Redirect to Login after 2 seconds
-            setTimeout(() => {
-                window.location.href = './login.html?registered=true';
-            }, 2000);
+            this.showSuccess('Account created! Check your email for the verification code.');
+            this.showOtpForm(email);
+            this.startOtpCooldown(60);
 
         } catch (error) {
             this.hideLoading();
