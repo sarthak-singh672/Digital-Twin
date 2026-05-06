@@ -222,7 +222,7 @@
                         </div>
                         <div class="pending-goals-section">
                             <h4><i class="fas fa-tasks"></i> Pending Goals</h4>
-                            <div id="pendingGoalsList"><p class="no-pending-msg">Loading goals...</p></div>
+                            <div id="pending-goals-list"><p class="no-pending-msg">Loading goals...</p></div>
                         </div>
                     </div>
                 </div>
@@ -442,7 +442,7 @@
 
                 renderAchievements(stats.achievements || []);
                 renderHealthGoals(stats.health_goals || []);
-                renderPendingGoals(stats.pending_goals || [], stats.no_pending);
+                renderPendingGoals(stats);
             } catch (err) { console.error('Profile fetch error:', err); }
         }
 
@@ -605,22 +605,18 @@
         // =============================================
         // RENDER: Pending Goals
         // =============================================
-        function renderPendingGoals(goals, noPending) {
-            const container = document.getElementById('pendingGoalsList');
-            if (!goals || goals.length === 0 || noPending) {
-                container.innerHTML = '<p class="no-pending-msg">No pending goal for today.</p>';
-                return;
+        function renderPendingGoals(stats) {
+            const goals = stats.pending_goals || [];
+            const goalsContainer = document.getElementById('pending-goals-list');
+            if (goalsContainer) {
+                if (goals.length === 0) {
+                    goalsContainer.innerHTML = '<p>No pending goals for today.</p>';
+                } else {
+                    goalsContainer.innerHTML = goals.map(g =>
+                        '<div class="goal-item"><span>' + g.text + '</span></div>'
+                    ).join('');
+                }
             }
-            container.innerHTML = goals.map(goal => {
-                const dateLabel = goal.is_today ? 'Today' : goal.date;
-                const badgeClass = goal.is_today ? 'goal-date-badge today' : 'goal-date-badge';
-                return `
-                    <div class="pending-goal-item" id="goal-item-${goal.id}">
-                        <input type="checkbox" id="goal-check-${goal.id}" onchange="completeGoal(${goal.id})">
-                        <label for="goal-check-${goal.id}">${goal.text}</label>
-                        <span class="${badgeClass}">${dateLabel}</span>
-                    </div>`;
-            }).join('');
         }
 
         // =============================================
@@ -645,7 +641,7 @@
                         setTimeout(() => {
                             item.remove();
                             if (document.querySelectorAll('.pending-goal-item').length === 0) {
-                                document.getElementById('pendingGoalsList').innerHTML =
+                                document.getElementById('pending-goals-list').innerHTML =
                                     '<p class="no-pending-msg">No pending goal for today.</p>';
                             }
                         }, 300);

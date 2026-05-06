@@ -316,12 +316,16 @@ var FormManager = (function() {
 
         var today = getTodayDate();
 
+        const now = new Date();
+        const ts = now.toISOString();
+
         var vitalsData = {
             hr: parseInt(formData.heartRate),
             bp_sys: parseInt(formData.bpSystolic),
             bp_dia: parseInt(formData.bpDiastolic),
             temp: parseFloat(formData.temperature),
-            spo2: parseInt(formData.spo2)
+            spo2: parseInt(formData.spo2),
+            ts: ts
         };
 
         var lifestyleData = {

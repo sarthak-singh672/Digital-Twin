@@ -413,11 +413,33 @@ def get_profile_stats(db: Session = Depends(database.get_db), user=Depends(auth.
         stress_progress = 100.0 if avg_stress <= stress_target else min(round((stress_target / avg_stress) * 100, 1),
                                                                         100)
 
+    total_entries = (
+        db.query(models.Vitals).filter(models.Vitals.user_id == user.user_id).count() +
+        db.query(models.Lifestyle).filter(models.Lifestyle.user_id == user.user_id).count() +
+        db.query(models.Academic).filter(models.Academic.user_id == user.user_id).count() +
+        db.query(models.Activity).filter(models.Activity.user_id == user.user_id).count()
+    )
+
+    generate_daily_goals(db, user.user_id)
+
+    pending = db.query(models.Goal).filter(
+        models.Goal.user_id == user.user_id,
+        models.Goal.completed == False
+    ).all()
+
+    pending_goals_data = [
+        {"id": g.id, "text": g.text, "date": g.date.isoformat()}
+        for g in pending
+    ]
+
     return {
         "health_score": health_score,
         "health_label": display_label,
         "day_streak": calculate_day_streak(db, user.user_id),
         "active_goals": len(pending_goals),
+        "total_entries": total_entries,
+        "pending_goals": pending_goals_data,
+        "pending_count": len(pending_goals_data),
         "health_goals": [
             {"title": "Improve Sleep Quality", "target": sleep_target, "current": current_sleep,
              "progress": sleep_progress, "unit": "hours"},
