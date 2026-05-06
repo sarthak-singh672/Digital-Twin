@@ -612,11 +612,15 @@
                 container.innerHTML = '<p class="no-pending-msg">No pending goals for today.</p>';
                 return;
             }
-            container.innerHTML = `
-                <ul class="pending-goals-list">
-                    ${goals.map(goal => `<li>${goal.text}</li>`).join('')}
-                </ul>
-            `;
+            container.innerHTML = '';
+            const list = document.createElement('ul');
+            list.className = 'pending-goals-list';
+            goals.forEach((goal) => {
+                const item = document.createElement('li');
+                item.textContent = goal.text;
+                list.appendChild(item);
+            });
+            container.appendChild(list);
         }
 
         // =============================================
