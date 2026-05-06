@@ -375,7 +375,6 @@ def complete_goal(goal_id: int, db: Session = Depends(database.get_db), user=Dep
 def get_profile_stats(db: Session = Depends(database.get_db), user=Depends(auth.get_current_user)):
     latest_pred = db.query(models.Prediction).filter(models.Prediction.user_id == user.user_id).order_by(
         desc(models.Prediction.pred_ts)).first()
-
     df = get_user_data(db, user.user_id)
     current_wellness = 5.0
     if df is not None and not df.empty:
@@ -384,40 +383,50 @@ def get_profile_stats(db: Session = Depends(database.get_db), user=Depends(auth.
             current_wellness = float(df_features.iloc[-1].get('WellnessScore', 5.0))
         except:
             pass
-
     ai_risk = float(latest_pred.risk_score if latest_pred else 0.2)
     health_score = round(min(max((current_wellness * 7) + ((1 - ai_risk) * 30), 0), 100), 1)
     display_label = "Optimal" if health_score > 75 else "Normal" if health_score >= 60 else "At Risk"
-
     today = date.today()
     pending_goals = db.query(models.Goal).filter(models.Goal.user_id == user.user_id,
                                                  models.Goal.completed == False).all()
-
     today_lifestyle = db.query(models.Lifestyle).filter(models.Lifestyle.user_id == user.user_id,
                                                         models.Lifestyle.date == today).first()
     all_lifestyle = db.query(models.Lifestyle).filter(models.Lifestyle.user_id == user.user_id).all()
-
-    # ✅ FIXED INDENTATION HERE
     current_sleep = float(today_lifestyle.sleep_hrs) if today_lifestyle and today_lifestyle.sleep_hrs else 0.0
     sleep_target = 8.0
     sleep_progress = 0
     if all_lifestyle:
         avg_sleep = sum(l.sleep_hrs or 0 for l in all_lifestyle) / len(all_lifestyle)
         sleep_progress = min(round((avg_sleep / sleep_target) * 100, 1), 100)
-
     current_stress = float(today_lifestyle.stress_score) if today_lifestyle and today_lifestyle.stress_score else 0.0
     stress_target = 4.0
     stress_progress = 0
     if all_lifestyle:
         avg_stress = sum(l.stress_score or 0 for l in all_lifestyle) / len(all_lifestyle)
-        stress_progress = 100.0 if avg_stress <= stress_target else min(round((stress_target / avg_stress) * 100, 1),
-                                                                        100)
+        stress_progress = 100.0 if avg_stress <= stress_target else min(round((stress_target / avg_stress) * 100, 1), 100)
+
+    total_entries = (
+        db.query(models.Vitals).filter(models.Vitals.user_id == user.user_id).count() +
+        db.query(models.Lifestyle).filter(models.Lifestyle.user_id == user.user_id).count() +
+        db.query(models.Academic).filter(models.Academic.user_id == user.user_id).count() +
+        db.query(models.Activity).filter(models.Activity.user_id == user.user_id).count()
+    )
+
+    generate_daily_goals(db, user.user_id)
+
+    pending_goals_data = [
+        {"id": g.id, "text": g.text, "date": g.date.isoformat()}
+        for g in pending_goals
+    ]
 
     return {
         "health_score": health_score,
         "health_label": display_label,
         "day_streak": calculate_day_streak(db, user.user_id),
         "active_goals": len(pending_goals),
+        "total_entries": total_entries,
+        "pending_goals": pending_goals_data,
+        "pending_count": len(pending_goals_data),
         "health_goals": [
             {"title": "Improve Sleep Quality", "target": sleep_target, "current": current_sleep,
              "progress": sleep_progress, "unit": "hours"},
