@@ -2,6 +2,11 @@ import pandas as pd
 import numpy as np
 import json
 import os
+import hashlib
+import hmac
+import secrets
+import smtplib
+from email.message import EmailMessage
 from typing import List, Optional
 from fastapi import FastAPI, Depends, HTTPException, status, APIRouter, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
@@ -10,10 +15,22 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, text, cast, Date
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 
 from src.db import database, models
 from src.api import schemas, auth
+from config import (
+    OTP_SECRET,
+    OTP_TTL_MINUTES,
+    OTP_MAX_ATTEMPTS,
+    OTP_RESEND_COOLDOWN_SECONDS,
+    OTP_MAX_RESENDS,
+    SMTP_HOST,
+    SMTP_PORT,
+    SMTP_USER,
+    SMTP_PASS,
+    SMTP_FROM
+)
 
 from src.core.etl import get_user_data
 from src.core.feature_engineering import generate_all_features
@@ -259,14 +276,94 @@ def run_full_analysis(db: Session, user: models.User):
         print(f"Background analysis error: {e}")
 
 
+# --- Email Verification Helpers ---
+def _generate_otp() -> str:
+    return str(secrets.randbelow(900000) + 100000)
+
+
+def _hash_otp(otp: str) -> str:
+    return hmac.new(OTP_SECRET.encode(), otp.encode(), hashlib.sha256).hexdigest()
+
+
+def _verify_otp_hash(stored_hash: str, otp: str) -> bool:
+    return hmac.compare_digest(stored_hash, _hash_otp(otp))
+
+
+def _issue_otp(db: Session, user: models.User, enforce_rate_limits: bool = True) -> Optional[str]:
+    now = datetime.now(timezone.utc)
+    active = db.query(models.EmailVerification).filter(
+        models.EmailVerification.user_id == user.user_id,
+        models.EmailVerification.verified_at.is_(None),
+        models.EmailVerification.expires_at > now
+    ).order_by(desc(models.EmailVerification.created_at)).first()
+
+    if active and enforce_rate_limits:
+        if active.last_sent_at:
+            elapsed = (now - active.last_sent_at).total_seconds()
+            if elapsed < OTP_RESEND_COOLDOWN_SECONDS:
+                return None
+        if active.resend_count >= OTP_MAX_RESENDS:
+            return None
+
+    otp = _generate_otp()
+    if active:
+        active.otp_hash = _hash_otp(otp)
+        active.expires_at = now + timedelta(minutes=OTP_TTL_MINUTES)
+        active.attempts_count = 0
+        active.resend_count += 1
+        active.last_sent_at = now
+    else:
+        db.add(models.EmailVerification(
+            user_id=user.user_id,
+            email=user.email,
+            otp_hash=_hash_otp(otp),
+            expires_at=now + timedelta(minutes=OTP_TTL_MINUTES),
+            attempts_count=0,
+            resend_count=1,
+            last_sent_at=now
+        ))
+
+    return otp
+
+
+def _send_otp_email(email: str, otp: str):
+    if not SMTP_HOST or not SMTP_FROM:
+        raise HTTPException(status_code=503, detail="Email service not configured")
+
+    msg = EmailMessage()
+    msg["Subject"] = "Your verification code"
+    msg["From"] = SMTP_FROM
+    msg["To"] = email
+    msg.set_content(f"Your OTP is {otp}. It expires in {OTP_TTL_MINUTES} minutes.")
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+        server.starttls()
+        if SMTP_USER and SMTP_PASS:
+            server.login(SMTP_USER, SMTP_PASS)
+        server.send_message(msg)
+
+
 # --- Auth Endpoints ---
 @router.post("/auth/register", response_model=schemas.User)
 def register_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     db_user = auth.get_user(db, email=user.email)
     if db_user: raise HTTPException(status_code=400, detail="Email already registered")
     new_user = models.User(email=user.email, hashed_password=auth.get_password_hash(user.password),
-                           username=user.username, first_name=user.first_name, last_name=user.last_name, consent=True)
+                           username=user.username, first_name=user.first_name, last_name=user.last_name, consent=True,
+                           email_verified=False)
     db.add(new_user)
+    db.flush()
+
+    otp = _issue_otp(db, new_user, enforce_rate_limits=False)
+    if otp:
+        try:
+            _send_otp_email(new_user.email, otp)
+        except HTTPException:
+            db.rollback()
+            raise
+        except Exception:
+            db.rollback()
+            raise HTTPException(status_code=500, detail="Failed to send OTP email")
     db.commit()
     db.refresh(new_user)
     return new_user
@@ -277,8 +374,67 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     user = auth.get_user(db, email=form_data.username)
     if not user or not auth.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Incorrect credentials")
+    if user.email_verified is False:
+        raise HTTPException(status_code=403, detail="Email not verified")
     access_token = auth.create_access_token(data={"sub": str(user.user_id)})
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/auth/email/send-otp")
+def send_email_otp(payload: schemas.EmailOnly, db: Session = Depends(database.get_db)):
+    user = db.query(models.User).filter(models.User.email == payload.email).first()
+    if not user or user.email_verified is True:
+        return {"status": "ok"}
+
+    otp = _issue_otp(db, user, enforce_rate_limits=True)
+    if not otp:
+        return {"status": "ok"}
+
+    try:
+        _send_otp_email(user.email, otp)
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to send OTP email")
+
+    db.commit()
+    return {"status": "ok"}
+
+
+@router.post("/auth/email/verify-otp")
+def verify_email_otp(payload: schemas.EmailOTPVerify, db: Session = Depends(database.get_db)):
+    user = db.query(models.User).filter(models.User.email == payload.email).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+    if user.email_verified is True:
+        return {"status": "verified"}
+
+    now = datetime.now(timezone.utc)
+    record = db.query(models.EmailVerification).filter(
+        models.EmailVerification.user_id == user.user_id,
+        models.EmailVerification.verified_at.is_(None),
+        models.EmailVerification.expires_at > now
+    ).order_by(desc(models.EmailVerification.created_at)).first()
+
+    if not record:
+        raise HTTPException(status_code=400, detail="OTP expired")
+    if record.attempts_count >= OTP_MAX_ATTEMPTS:
+        raise HTTPException(status_code=429, detail="Too many attempts. Please request a new code.")
+
+    if not _verify_otp_hash(record.otp_hash, payload.otp):
+        record.attempts_count += 1
+        db.commit()
+        if record.attempts_count >= OTP_MAX_ATTEMPTS:
+            raise HTTPException(status_code=429, detail="Too many attempts. Please request a new code.")
+        raise HTTPException(status_code=400, detail="Incorrect OTP")
+
+    record.verified_at = now
+    user.email_verified = True
+    user.email_verified_at = now
+    db.commit()
+    return {"status": "verified"}
 
 
 # --- Data Entry Endpoints ---

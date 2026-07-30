@@ -97,8 +97,25 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData)
             });
-            await handleResponse(response);
-            return this.login({ username: userData.email, password: userData.password });
+            return await handleResponse(response);
+        },
+
+        async sendOtp(email) {
+            const response = await fetch(`${BASE_URL}/auth/email/send-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            return await handleResponse(response);
+        },
+
+        async verifyOtp(email, otp) {
+            const response = await fetch(`${BASE_URL}/auth/email/verify-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, otp })
+            });
+            return await handleResponse(response);
         },
 
         // --- Data Submission ---
