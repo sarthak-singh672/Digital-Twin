@@ -44,6 +44,3 @@ uvicorn main:app --reload
 - Designed and deployed an end-to-end ML-powered platform (data → model → deployment), serving 17 REST endpoints to live users
 - Consolidated scattered health data sources into a single dashboard with automated ingestion pipelines
 - Migrated across deployment platforms (Railway → Render) to maintain uptime and reliability
-
-## Background
-This project began as a team capstone at AKGEC exploring the digital twin concept for student wellbeing. I independently redesigned the architecture, rebuilt the backend and frontend, and deployed it as a production platform with real users.
